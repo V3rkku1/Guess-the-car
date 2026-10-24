@@ -17,9 +17,10 @@ button { font: inherit; color: inherit; }
 a { color: var(--yellow); }
 
 /* Masthead */
-.masthead { max-width: 1120px; margin: 0 auto; padding: 22px 16px 14px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 18px; }
+.masthead { max-width: 1120px; margin: 0 auto; padding: 22px 16px 14px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 18px; position: relative; }
 .mark { font: italic 800 clamp(2rem, 6vw, 3rem)/1 var(--cond); text-transform: uppercase; color: var(--text); text-decoration: none; letter-spacing: .01em; }
 .mark b { color: var(--yellow); font-weight: inherit; }
+.mode { position: absolute; top: 22px; right: 16px; }
 .tag { margin: 0; color: var(--muted); font: 600 1.05rem var(--cond); text-transform: uppercase; letter-spacing: .06em; }
 .checker { height: 10px; background: repeating-conic-gradient(var(--text) 0 25%, var(--bg) 0 50%) 0 0 / 10px 10px; opacity: .85; }
 

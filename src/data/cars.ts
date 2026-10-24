@@ -1,6 +1,8 @@
 // Categories. Car categories: "Brand:model,model,..." ("Brand/Country:" overrides the category country).
 // pick: reuse brands from other categories. series: a championship from series.ts.
 // Trivia: "question|correct|wrong|wrong|wrong", t2 = medium, t3 = hard.
+import { FOOTBALL } from './football';
+
 export interface Category {
   code: string; // short badge shown on the menu, like a number plate
   title?: string;
@@ -588,6 +590,6 @@ export const CATS: Record<string, Category> = {
     'From whom did Tata Motors buy Jaguar Land Rover in 2008?|Ford|BMW|General Motors|British Leyland',
     'In which country was the Yugo built?|Yugoslavia|Poland|Czechoslovakia|Hungary',
     'Proton is the national car brand of which country?|Malaysia|Indonesia|Thailand|Philippines',
-    'Which Croatian company makes the Nevera hypercar?|Rimac|Togg|Spyker|Tatra']}
+    'Which Croatian company makes the Nevera hypercar?|Rimac|Togg|Spyker|Tatra']},
+  ...FOOTBALL
 };
-

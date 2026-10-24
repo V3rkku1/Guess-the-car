@@ -1,5 +1,6 @@
 import './style.css';
 import { CATS } from './data/cars';
+import { FOOTBALL } from './data/football';
 import { questionPool, subtitle, title, type Difficulty, type Question } from './questions';
 import { photo, wikiUrl } from './photos';
 import { SFX } from './sound';
@@ -28,6 +29,9 @@ for (const k of ['sound', 'confirm', 'timer'] as (keyof Options)[]) {
   el.checked = OPT[k];
   el.onchange = () => { OPT[k] = el.checked; save('carOpts', OPT); };
 }
+
+let football = load('carMode', false);
+$('mode').onclick = () => { football = !football; save('carMode', football); show('menu'); };
 
 const safeAmount = () => { const i = [...SAFE].reverse().find(i => i < S.level); return i === undefined ? 0 : PRIZES[i]; };
 
@@ -230,14 +234,16 @@ document.onkeydown = e => {
 function show(id: 'menu' | 'play') {
   clearInterval(tick);
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  $('mode').hidden = id !== 'menu';
   if (id !== 'menu') return;
-  $('sub').textContent = 'A millionaire-style quiz for car people';
+  $('mode').textContent = football ? 'Cars' : 'Football';
+  $('sub').textContent = football ? 'A millionaire-style quiz for football fans' : 'A millionaire-style quiz for car people';
   const all = Object.values(STATS);
   const best = Math.max(load('carBest', 0), ...all.map(s => s.best));
   const played = all.reduce((n, s) => n + s.played, 0);
   $('best').textContent = played ? `Best win ${euro(best)} · ${played} games played` : '';
-  const keys = Object.keys(CATS);
-  const groups: [string, string[]][] = [
+  const keys = Object.keys(CATS).filter(k => !(k in FOOTBALL));
+  const groups: [string, string[]][] = football ? [['Football', Object.keys(FOOTBALL)]] : [
     ['Mixed', ['All', ...keys.filter(k => CATS[k].pick)]],
     ['Trivia', keys.filter(k => !CATS[k].brands && !CATS[k].pick && !CATS[k].series)],
     ['By country', keys.filter(k => CATS[k].brands)],
