@@ -1,7 +1,7 @@
 // Builds public/photos.json: Wikipedia thumbnail for every photo title, so players skip the live lookup.
 // Run with `npm run photos` (the deploy workflow runs it before building). Safe to re-run; slow on purpose
 // to stay inside Wikipedia's rate limits.
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { API, bestHit, pack, searchParams, shouldSearch, usable, type Page } from '../src/photoRules';
 import { photoTitles } from '../src/questions';
 
@@ -47,5 +47,6 @@ for (const [n, t] of toSearch.entries()) {
 }
 
 const found = Object.values(out).filter(Boolean).length;
+mkdirSync('public', {recursive: true}); // git does not keep the empty folder
 writeFileSync('public/photos.json', JSON.stringify(out)); // npm runs scripts from the project root
 console.log(`photos.json: ${found}/${titles.length} titles have a photo (${toSearch.length} needed a search)`);
