@@ -123,6 +123,24 @@ dialog a{color:var(--gold)}
 <script>
 // Data: "Brand:model,model,..." per category; trivia "question|correct|wrong|wrong|wrong".
 const CATS = {
+  // Cross-country category: reuses brands listed under their home country via "pick".
+  Sports: {flag:'🏎️', pick:['Ferrari','Lamborghini','Porsche','McLaren','Bugatti','Pagani','Koenigsegg','Aston Martin','Lotus','Maserati','Alpine','Rimac','De Tomaso','TVR','Noble','Ariel','Caterham','Saleen','Shelby','Spyker','Morgan'],
+  t2:[
+    'In which English town is McLaren based?|Woking|Gaydon|Hethel|Crewe',
+    'Which group owns Lamborghini?|Volkswagen Group|Stellantis|BMW|Ferrari',
+    'What does "GT" stand for in car names?|Gran Turismo|Grand Torque|Great Track|Gear Transmission',
+    'Bugatti merged with which company in 2021?|Rimac|Porsche|Koenigsegg|Pagani',
+    'Which style of doors does the Lamborghini Countach have?|Scissor|Gullwing|Butterfly|Suicide'],
+  t3:[
+    'How many cylinders does the Bugatti Chiron\'s engine have?|16|12|10|8',
+    'Which car completed the "holy trinity" of hypercars with the McLaren P1 and LaFerrari?|Porsche 918 Spyder|Bugatti Veyron|Pagani Huayra|Koenigsegg Agera',
+    'Why is the McLaren F1\'s engine bay lined with gold?|Gold reflects heat|Luxury|Rust protection|To save weight',
+    'Which maker built the McLaren F1\'s V12 engine?|BMW|Ford|Mercedes-Benz|Honda',
+    'What powers the Rimac Nevera?|Four electric motors|A W16 engine|A V12 hybrid|A hydrogen fuel cell',
+    'Before founding his own company, Enzo Ferrari ran the racing team of which brand?|Alfa Romeo|Maserati|Fiat|Lancia',
+    'How many Porsche 918 Spyders were built?|918|500|1,000|99',
+    'What is the name of the LaFerrari\'s hybrid system?|HY-KERS|e-Boost|E-Hybrid|KERS-X',
+    'Which F1 designer co-developed the Aston Martin Valkyrie?|Adrian Newey|Gordon Murray|Rory Byrne|Patrick Head']},
   German: {flag:'🇩🇪', country:'Germany', brands:[
     'Volkswagen:Golf,Golf GTI,Passat,Polo,Tiguan,Touareg,Beetle,Scirocco,Arteon,ID.3,ID.4,ID. Buzz,Up!,Jetta,Corrado,Phaeton,Lupo,Fox,Sharan,Touran,T-Roc,T-Cross,Taigo,Amarok,Caddy,Transporter,Bora,Vento,Karmann Ghia,Type 2,Thing,Eos,CC,Teramont,Taos,Santana,Derby',
     'BMW:3/15 Dixi,303,315,319,326,327,335,501,502,503,507,Isetta,1600,1800,2000,1602,2002,2002 Turbo,New Class,2800,3.0 CS,3.0 CSL,M1,1 Series,1M,2 Series,2 Series Active Tourer,2 Series Gran Coupé,3 Series,3 Series Compact,3 Series Gran Turismo,4 Series,4 Series Gran Coupé,5 Series,5 Series Gran Turismo,6 Series,6 Series Gran Turismo,7 Series,8 Series,M2,M3,M3 CSL,M3 GTR,M4,M4 CSL,M5,M6,M8,M Coupé,M Roadster,X1,X2,X3,X3 M,X4,X4 M,X5,X5 M,X6,X6 M,X7,XM,Z1,Z3,Z4,Z8,i3,i4,i5,i7,i8,iX,iX1,iX2,iX3',
@@ -439,7 +457,7 @@ const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { cons
 const euro = n => '€' + n.toLocaleString('en');
 
 // Flatten brand data once: [{brand, country, models, cat}]. "Brand/Country:" overrides the category country.
-const BRANDS = Object.entries(CATS).flatMap(([cat, c]) => c.brands.map(s => {
+const BRANDS = Object.entries(CATS).flatMap(([cat, c]) => (c.brands || []).map(s => {
   const i = s.indexOf(':'), [brand, country = c.country] = s.slice(0, i).split('/');
   return {brand, country, cat, models: s.slice(i + 1).split(',')};
 }));
@@ -448,11 +466,13 @@ const seen = {};
 BRANDS.forEach(b => b.models.forEach(m => seen[m.toLowerCase()] = (seen[m.toLowerCase()] || 0) + 1));
 BRANDS.forEach(b => b.models = b.models.filter(m => seen[m.toLowerCase()] === 1));
 const COUNTRIES = [...new Set(BRANDS.map(b => b.country))];
+const brandsOf = cat => cat === 'All' ? BRANDS : CATS[cat].pick ? BRANDS.filter(b => CATS[cat].pick.includes(b.brand)) : BRANDS.filter(b => b.cat === cat);
+console.assert(brandsOf('Sports').length === CATS.Sports.pick.length, 'unknown Sports brand');
 const trivia = (s, d) => { const [q, ...o] = s.split('|'); return {q, a: o[0], opts: o, d}; };
 
 function questionPool(cat, d) {
   const cats = cat === 'All' ? Object.keys(CATS) : [cat];
-  const brands = BRANDS.filter(b => cats.includes(b.cat));
+  const brands = brandsOf(cat);
   const others = b => { // distractor brands: same pool first, padded from all brands
     const same = shuffle(brands.filter(x => x.brand !== b.brand));
     return [...same, ...shuffle(BRANDS.filter(x => !same.includes(x) && x.brand !== b.brand))].slice(0, 3);
@@ -461,7 +481,7 @@ function questionPool(cat, d) {
     const qs = brands.flatMap(b => b.models.flatMap(m => [
       {q: `Which brand makes the ${m}?`, a: b.brand, opts: [b.brand, ...others(b).map(x => x.brand)], img: `${b.brand} ${m}`},
       {q: 'Which car is this?', a: `${b.brand} ${m}`, opts: [`${b.brand} ${m}`, ...others(b).map(x => `${x.brand} ${x.models[rnd(x.models.length)]}`)], pic: `${b.brand} ${m}`}]));
-    if (cat === 'All' || cat === 'World') qs.push(...brands.map(b =>
+    if (['All', 'World', 'Sports'].includes(cat)) qs.push(...brands.map(b =>
       ({q: `Which country does ${b.brand} come from?`, a: b.country, opts: [b.country, ...shuffle(COUNTRIES.filter(c => c !== b.country)).slice(0, 3)]})));
     return qs;
   }
@@ -725,7 +745,7 @@ function show(id) {
   $('best').textContent = played ? `🏆 Best win ${euro(best)} · ${played} games played` : '';
   const count = bs => bs.reduce((n, b) => n + b.models.length, 0);
   $('cats').innerHTML = [['All', '🌍', `${BRANDS.length} brands · ${count(BRANDS)} models, mixed`]]
-    .concat(Object.entries(CATS).map(([k, c]) => [k, c.flag, `${c.brands.length} brands · ${count(BRANDS.filter(b => b.cat === k))} models`]))
+    .concat(Object.entries(CATS).map(([k, c]) => [k, c.flag, `${brandsOf(k).length} brands · ${count(brandsOf(k))} models`]))
     .map(([k, f, s]) => `<button class="cat" data-cat="${k}"><span class="f">${f}</span><strong>${k === 'All' ? 'All cars' : k + ' cars'}</strong><small>${s}</small>${
       STATS[k] ? `<small class="best">🏆 ${euro(STATS[k].best)} best · ${STATS[k].played} played${STATS[k].wins ? ` · ${STATS[k].wins}× millionaire` : ''}</small>` : ''}</button>`).join('');
 }
