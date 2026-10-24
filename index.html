@@ -23,6 +23,9 @@ h1{text-align:center;color:var(--gold);margin:24px 16px 4px;font-size:clamp(1.4r
 .life{font:inherit;font-size:.95rem;padding:8px 14px;border-radius:999px;border:2px solid var(--line);background:#000a33;color:var(--text);cursor:pointer}
 .life:disabled{opacity:.3;text-decoration:line-through;cursor:default}
 .top .spacer{flex:1}
+#pic{display:block;margin:0 auto 14px;max-width:100%;height:clamp(160px,30vh,280px);object-fit:contain;border-radius:12px}
+#pic[hidden]{display:none}
+.credit{font-size:.75rem;opacity:.6}
 .q{clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%);background:linear-gradient(#0a1a5c,#000a33);border:0;padding:28px 8%;text-align:center;font-size:clamp(1.05rem,2.4vw,1.4rem);min-height:110px;display:flex;align-items:center;justify-content:center;margin-bottom:18px}
 .answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .ans{clip-path:polygon(5% 0,95% 0,100% 50%,95% 100%,5% 100%,0 50%);padding:16px 8%;text-align:left;font-size:1.05rem;min-height:58px;border:0;background:linear-gradient(#1a2f8a,#000a33)}
@@ -53,7 +56,7 @@ button.big{padding:10px 22px;border-radius:999px;margin-top:12px;font-size:1rem}
 <h1>Who Wants to Be a Car Millionaire?</h1>
 <p class="sub" id="sub">Pick a category. 15 questions. 3 lifelines. €1,000,000.</p>
 
-<section class="screen on" id="menu"><div id="cats"></div><p class="meta" id="best"></p></section>
+<section class="screen on" id="menu"><div id="cats"></div><p class="meta" id="best"></p><p class="meta credit">Car photos load from Wikipedia / Wikimedia Commons (CC BY-SA).</p></section>
 
 <section class="screen" id="play">
   <div class="game">
@@ -65,6 +68,7 @@ button.big{padding:10px 22px;border-radius:999px;margin-top:12px;font-size:1rem}
         <span class="spacer"></span>
         <button class="life" id="walk">🚶 Walk away</button>
       </div>
+      <img id="pic" alt="Mystery car" hidden>
       <div class="q" id="q"></div>
       <div class="answers" id="answers"></div>
       <p class="meta" id="status"></p>
@@ -80,8 +84,8 @@ button.big{padding:10px 22px;border-radius:999px;margin-top:12px;font-size:1rem}
 const CATS = {
   German: {flag:'🇩🇪', country:'Germany', brands:[
     'Volkswagen:Golf,Golf GTI,Passat,Polo,Tiguan,Touareg,Beetle,Scirocco,Arteon,ID.3,ID.4,ID. Buzz,Up!,Jetta,Corrado,Phaeton,Lupo,Fox,Sharan,Touran,T-Roc,T-Cross,Taigo,Amarok,Caddy,Transporter,Bora,Vento,Karmann Ghia,Type 2,Thing,Eos,CC,Teramont,Taos,Santana,Derby',
-    'BMW:1 Series,2 Series,3 Series,4 Series,5 Series,6 Series,7 Series,8 Series,M1,M2,M3,M4,M5,M6,M8,X1,X2,X3,X4,X5,X6,X7,XM,Z1,Z3,Z4,Z8,i3,i4,i7,i8,iX,iX3,Isetta,507,2002,3.0 CSL',
-    'Mercedes-Benz:A-Class,B-Class,C-Class,E-Class,S-Class,G-Class,CLA,CLS,CLK,SL,SLK,SLC,SLS AMG,AMG GT,GLA,GLB,GLC,GLE,GLS,ML,GL,EQA,EQB,EQC,EQE,EQS,V-Class,Vito,Sprinter,Citan,X-Class,300 SL,190E,600 Pullman,Unimog',
+    'BMW:3/15 Dixi,303,315,319,326,327,335,501,502,503,507,Isetta,1600,1800,2000,1602,2002,2002 Turbo,New Class,2800,3.0 CS,3.0 CSL,M1,1 Series,1M,2 Series,2 Series Active Tourer,2 Series Gran Coupé,3 Series,3 Series Compact,3 Series Gran Turismo,4 Series,4 Series Gran Coupé,5 Series,5 Series Gran Turismo,6 Series,6 Series Gran Turismo,7 Series,8 Series,M2,M3,M3 CSL,M3 GTR,M4,M4 CSL,M5,M6,M8,M Coupé,M Roadster,X1,X2,X3,X3 M,X4,X4 M,X5,X5 M,X6,X6 M,X7,XM,Z1,Z3,Z4,Z8,i3,i4,i5,i7,i8,iX,iX1,iX2,iX3',
+    'Mercedes-Benz:Simplex,SSK,SSKL,500K,540K,770,170V,Ponton,Fintail,Pagoda,300 SL,190 SL,300 SLR,600 Pullman,190E,500E,CLK GTR,A-Class,B-Class,C-Class,E-Class,S-Class,G-Class,G 63 AMG 6x6,CL-Class,CLA,CLA Shooting Brake,CLC,CLE,CLK,CLS,SL,SLK,SLC,SLS AMG,AMG GT,AMG GT 4-Door,AMG One,GLA,GLB,GLC,GLC Coupé,GLE,GLE Coupé,GLK,GLS,ML,GL,R-Class,EQA,EQB,EQC,EQE,EQE SUV,EQS,EQS SUV,EQV,EQT,V-Class,Viano,Vaneo,Vito,Metris,MB100,Sprinter,Citan,T-Class,X-Class,Unimog',
     'Audi:A1,A2,A3,A4,A5,A6,A7,A8,Q2,Q3,Q4 e-tron,Q5,Q7,Q8,R8,TT,S3,S4,RS2,RS3,RS4,RS5,RS6,RS7,RS Q8,e-tron,e-tron GT,Quattro,Sport Quattro,80,100,V8,allroad',
     'Porsche:911,912,914,924,928,944,959,968,356,550 Spyder,Boxster,Cayman,Cayenne,Macan,Panamera,Taycan,Carrera GT,918 Spyder,911 GT3,911 Turbo',
     'Opel:Astra,Corsa,Insignia,Vectra,Kadett,Manta,Calibra,Omega,Senator,Ascona,Rekord,Monza,Tigra,Meriva,Adam,Frontera,Speedster,Grandland,Crossland,Mokka,Zafira,Agila,Combo,Antara,Ampera,Kapitän,Diplomat',
@@ -111,9 +115,9 @@ const CATS = {
     'Which East German car had a body made of Duroplast?|Trabant|Wartburg|Barkas|Opel Rekord',
     'Which BMW first wore the kidney grille, in 1933?|303|328|507|Isetta']},
   Japanese: {flag:'🇯🇵', country:'Japan', brands:[
-    'Toyota:Corolla,Supra,Prius,Land Cruiser,Hilux,Camry,RAV4,Yaris,GR86,Celica,Crown,Century,MR2,Previa,Sienna,Tacoma,Tundra,4Runner,Avensis,Auris,Aygo,Starlet,Carina,Cressida,Sequoia,Highlander,Mirai,bZ4X,2000GT,FJ Cruiser,Fortuner,Innova,Venza,C-HR,Avalon,Paseo,Tercel,Echo,Matrix,iQ,Verso,Chaser,Mark II,Soarer,Sera,GR Yaris,GR Corolla,Alphard,Hiace,Corona,Picnic,Urban Cruiser',
+    'Toyota:AA,Crown,Corona,Publica,Sports 800,2000GT,Celica,Celica GT-Four,Carina,Carina ED,Corolla,Corolla Levin,Sprinter Trueno,Corolla Cross,Corolla Verso,Starlet,Tercel,Cressida,Mark II,Mark X,Chaser,Soarer,Supra,GR Supra,MR2,MR-S,Camry,Camry Solara,Vista,Avalon,Previa,Estima,Sienna,Lite Ace,Town Ace,Hiace,Granvia,Alphard,Vellfire,Noah,Voxy,Esquire,Sienta,Wish,Ipsum,Gaia,Nadia,Picnic,Avensis,Avensis Verso,Verso,Verso-S,Yaris,Yaris Cross,GR Yaris,Vitz,Echo,Platz,Belta,Etios,Agya,Aygo,Aygo X,iQ,Urban Cruiser,C-HR,RAV4,Harrier,Kluger,Highlander,Venza,4Runner,Hilux Surf,Land Cruiser,Land Cruiser Prado,FJ Cruiser,Mega Cruiser,Sequoia,Fortuner,Rush,Raize,Tacoma,Tundra,T100,Hilux,Prius,Prius c,Prius v,Prius Prime,Mirai,bZ4X,bZ3,Century,Origin,Celsior,Aristo,Altezza,Windom,Brevis,Progrès,Verossa,Allion,Premio,Caldina,Curren,Cynos,Paseo,Sera,GT86,GR86,GR Corolla,Avanza,Innova,Coaster,Passo,Matrix,Allex,Funcargo,bB,Will Vi',
     'Honda:Civic,Civic Type R,NSX,Accord,S2000,S800,S660,CR-V,HR-V,ZR-V,Jazz,Fit,Integra,Prelude,CR-X,Insight,Legend,Odyssey,Pilot,Ridgeline,Passport,Element,Beat,City,Stream,FR-V,Shuttle,Clarity,Concerto',
-    'Nissan:GT-R,Skyline,Leaf,Qashqai,350Z,370Z,300ZX,240Z,510,Silvia,180SX,Micra,Patrol,Navara,X-Trail,Juke,Note,Almera,Primera,Sunny,Bluebird,Cherry,Maxima,Altima,Sentra,Pathfinder,Murano,Terrano,Cube,Figaro,Pulsar,Ariya,Titan,Frontier,Laurel,Cedric,President,Stagea,Elgrand,Pao,Be-1',
+    'Nissan:GT-R,Skyline,Skyline GT-R,Fairlady Z,240Z,260Z,280Z,280ZX,300ZX,350Z,370Z,510,Silvia,180SX,200SX,240SX,Sileighty,Laurel,Cedric,Gloria,President,Cima,Fuga,Leopard,Stagea,Bluebird,Bluebird Sylphy,Sylphy,Sunny,Sentra,Pulsar,Almera,Almera Tino,Tiida,Versa,Micra,March,Note,Cube,Figaro,Pao,Be-1,S-Cargo,Rasheen,Juke,Kicks,Qashqai,X-Trail,Rogue,Murano,Pathfinder,Armada,Terrano,Terrano II,Patrol,Xterra,Navara,Frontier,Titan,Hardbody,Prairie,Serena,Elgrand,Quest,Presage,Lafesta,NV200,e-NV200,Primastar,Interstar,Vanette,Cabstar,Leaf,Ariya,Sakura,Maxima,Altima,Stanza,Primera,Teana,Cefiro,Lucino,Avenir,Wingroad,AD,Cherry,Violet,Langley,Auster,Moco,Dayz,Roox,Otti,Pino',
     'Mazda:MX-5,RX-7,RX-8,RX-3,CX-3,CX-5,CX-30,CX-60,CX-90,CX-7,CX-9,Cosmo,787B,MX-3,MX-6,MX-30,323,626,929,Demio,Tribute,Bongo,Atenza,Axela,Premacy,BT-50,Carol,AZ-1,MPV,Millenia,Familia,Xedos 6',
     'Subaru:Impreza,WRX,WRX STI,Forester,Outback,BRZ,Legacy,XV,Crosstrek,Ascent,Levorg,SVX,Justy,Baja,Tribeca,360,Leone,Brat,Solterra,Sambar,Vivio,R2',
     'Mitsubishi:Lancer Evolution,Lancer,Pajero,Montero,Eclipse,Eclipse Cross,3000GT,Outlander,Galant,Colt,Space Star,Mirage,ASX,L200,Triton,Shogun,Sigma,Starion,FTO,Carisma,Grandis,i-MiEV,Delica,Diamante,Raider,Endeavor',
@@ -356,7 +360,7 @@ const CATS = {
     'GAZ/Russia:Volga,Pobeda,Chaika,Gazelle',
     'Moskvitch/Russia:408,412,2141',
     'UAZ/Russia:469,452,Bukhanka,Profi',
-    'Tata/India:Nano,Indica,Indigo,Safari,Nexon,Harrier,Punch,Tiago,Tigor,Altroz,Sumo,Hexa,Aria,Curvv',
+    'Tata/India:Nano,Indica,Indigo,Safari,Nexon,Punch,Tiago,Tigor,Altroz,Sumo,Hexa,Aria,Curvv',
     'Mahindra/India:Scorpio,Thar,XUV700,XUV300,Bolero,Marazzo,KUV100,BE 6,XEV 9e,Xylo,Quanto',
     'Maruti/India:Gypsy,Zen,Dzire,Brezza,Ciaz,Fronx,Eeco',
     'Hindustan/India:Ambassador,Contessa',
@@ -413,15 +417,20 @@ function questionPool(cat, d) {
     return [...same, ...shuffle(BRANDS.filter(x => !same.includes(x) && x.brand !== b.brand))].slice(0, 3);
   };
   if (d === 1) {
-    const qs = brands.flatMap(b => b.models.map(m => ({q: `Which brand makes the ${m}?`, a: b.brand, opts: [b.brand, ...others(b).map(x => x.brand)]})));
+    const qs = brands.flatMap(b => b.models.flatMap(m => [
+      {q: `Which brand makes the ${m}?`, a: b.brand, opts: [b.brand, ...others(b).map(x => x.brand)], img: `${b.brand} ${m}`},
+      {q: 'Which car is this?', a: `${b.brand} ${m}`, opts: [`${b.brand} ${m}`, ...others(b).map(x => `${x.brand} ${x.models[rnd(x.models.length)]}`)], pic: `${b.brand} ${m}`}]));
     if (cat === 'All' || cat === 'World') qs.push(...brands.map(b =>
       ({q: `Which country does ${b.brand} come from?`, a: b.country, opts: [b.country, ...shuffle(COUNTRIES.filter(c => c !== b.country)).slice(0, 3)]})));
     return qs;
   }
   const t = cats.flatMap(c => CATS[c]['t' + d].map(s => trivia(s, d)));
-  if (d === 2) return [...t, ...brands.map(b => {
-    const m = b.models[rnd(b.models.length)];
-    return {q: `Which of these is a ${b.brand} model?`, a: m, opts: [m, ...others(b).map(x => x.models[rnd(x.models.length)])]};
+  if (d === 2) return [...t, ...brands.flatMap(b => {
+    const [m, ...rest] = shuffle(b.models);
+    const qs = [{q: `Which of these is a ${b.brand} model?`, a: m, opts: [m, ...others(b).map(x => x.models[rnd(x.models.length)])]}];
+    // Harder picture round: tell apart models of the same brand.
+    if (rest.length >= 3) qs.push({q: `Which ${b.brand} is this?`, a: m, opts: [m, ...rest.slice(0, 3)], pic: `${b.brand} ${m}`});
+    return qs;
   })];
   return t;
 }
@@ -432,19 +441,42 @@ function start(cat) {
   ['l50', 'laud', 'lphone', 'walk'].forEach(id => $(id).disabled = false);
   $('sub').textContent = `${cat === 'All' ? '🌍 All cars' : CATS[cat].flag + ' ' + cat + ' cars'}`;
   show('play');
-  next();
+  lock(true);
+  next().then(() => lock(false));
 }
 
-function next() {
+// Lead photo of the car's Wikipedia article; undefined if missing, offline or slow. Cached per title.
+const photos = {};
+const photo = title => photos[title] ??= fetchPhoto(title);
+async function fetchPhoto(title) {
+  try {
+    const r = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(title.replace(/ /g, '_')), {signal: AbortSignal.timeout(4000)});
+    const j = await r.json();
+    return j.type === 'standard' ? j.thumbnail?.source : undefined;
+  } catch {}
+}
+
+async function next() {
   const d = S.level < 5 ? 1 : S.level < 10 ? 2 : 3;
+  const key = x => x.q + '|' + x.a;
   // Fall back to easier pools if a hard pool runs dry.
   let pool = [];
-  for (let k = d; k >= 1 && !pool.length; k--) pool = questionPool(S.cat, k).filter(x => !S.used.has(x.q));
-  const q = pool[rnd(pool.length)];
-  S.used.add(q.q);
+  for (let k = d; k >= 1 && !pool.length; k--) pool = questionPool(S.cat, k).filter(x => !S.used.has(key(x)));
+  $('q').textContent = 'Loading…'; $('answers').innerHTML = ''; $('pic').hidden = true;
+  let q, src;
+  for (let tries = 0; tries < 4; tries++) { // picture questions need a photo; else try another
+    q = pool[rnd(pool.length)];
+    if (!q.pic || (src = await photo(q.pic))) break;
+  }
+  if (q.pic && !src) q = pool.find(x => !x.pic);
+  S.used.add(key(q));
   q.opts = shuffle(q.opts);
   console.assert(new Set(q.opts).size === 4 && q.opts.includes(q.a), 'bad question', q);
   S.cur = q; S.busy = false;
+  const pic = $('pic');
+  pic.onerror = () => pic.hidden = true;
+  if (src) { pic.src = src; pic.hidden = false; }
+  else if (q.img) photo(q.img).then(s => { if (s && S.cur === q) { pic.src = s; pic.hidden = false; } });
   $('q').textContent = q.q;
   $('answers').innerHTML = '';
   q.opts.forEach((o, i) => {
@@ -483,8 +515,7 @@ function answer(btn, opt) {
       }
       if (S.level === 14) return end(true, PRIZES[14], 'You answered all 15 questions!');
       S.level++;
-      next();
-      lock(false);
+      next().then(() => lock(false));
     }, 1800);
   }, 1500);
 }
