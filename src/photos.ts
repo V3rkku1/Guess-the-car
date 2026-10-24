@@ -1,12 +1,16 @@
 // Lead photo of a Wikipedia article, already loaded into the browser cache; undefined if none,
 // offline or slow. Exact title first, then a title search. Cached per title.
-const API = 'https://en.wikipedia.org/w/api.php?origin=*&format=json&formatversion=2&redirects=1&prop=pageimages|pageprops&piprop=thumbnail&pithumbsize=330&ppprop=disambiguation&';
+const API = 'https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&formatversion=2&redirects=1&prop=pageimages|pageprops&piprop=thumbnail&pithumbsize=330&ppprop=disambiguation&';
 const cache = new Map<string, Promise<string | undefined>>();
 
 interface Page { title: string; missing?: boolean; index?: number; thumbnail?: { source: string }; pageprops?: object }
 
 export function photo(title: string) {
-  if (!cache.has(title)) cache.set(title, fetchPhoto(title));
+  if (!cache.has(title)) {
+    const p = fetchPhoto(title);
+    cache.set(title, p);
+    p.then(src => { if (!src) cache.delete(title); }); // a miss may be a timeout: allow a later retry
+  }
   return cache.get(title)!;
 }
 
@@ -15,14 +19,15 @@ async function pages(params: string): Promise<Page[]> {
   return (await r.json()).query?.pages ?? [];
 }
 
-// A search hit only counts if it names the same brand/first name and one title contains the other
-// ("BMW 3/15" for "BMW 3/15 Dixi"), so a search never swaps in a different car.
+// A search hit only counts if it is more than a bare brand, names the same brand/first name and one
+// title contains the other ("BMW 3/15" for "BMW 3/15 Dixi"), so a search never swaps in a different car.
 const base = (s: string) => s.replace(/\(.*?\)/g, '').trim().toLowerCase();
 const matches = (query: string, found: string) => {
   const q = base(query), f = base(found);
-  return f.startsWith(q.split(' ')[0]) && (q.includes(f) || f.includes(q));
+  return f.includes(' ') && f.startsWith(q.split(' ')[0]) && (q.includes(f) || f.includes(q));
 };
-const usable = (p: Page) => p.thumbnail && !p.pageprops;
+// Brand pages lead with a logo, not a car: skip SVGs and files named "logo".
+const usable = (p: Page) => !!p.thumbnail && !p.pageprops && !/\.svg\/|logo/i.test(p.thumbnail.source);
 
 async function fetchPhoto(title: string): Promise<string | undefined> {
   try {
