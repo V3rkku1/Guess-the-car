@@ -4,7 +4,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const MULTI = ['Aston Martin', 'Alfa Romeo', 'Land Rover', 'Lynk & Co', 'De Tomaso', 'De Lorean', 'Great Wall', 'David Brown',
-  'W Motors', 'Hispano Suiza', 'Sin Cars', 'Iran Khodro', 'Touring Superleggera'];
+  'W Motors', 'Hispano Suiza', 'Sin Cars', 'Iran Khodro', 'Touring Superleggera', 'Renault Samsung'];
 // File spelling -> the game's brand name.
 const ALIAS = {Citroen: 'Citroën', Skoda: 'Škoda', Seat: 'SEAT', AUDI: 'Audi', 'De Lorean': 'DeLorean', 'Hispano Suiza': 'Hispano-Suiza',
   XPENG: 'XPeng', ChangAn: 'Changan', RAM: 'Ram', Li: 'Li Auto', KGM: 'SsangYong', Moskvich: 'Moskvitch', DongFeng: 'Dongfeng',
