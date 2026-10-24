@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Who Wants to Be a Car Millionaire?</title>
+<!-- Single file, no framework/build/images: native <dialog>, CSS clip-path, plain JS. -->
+<style>
+:root{--bg1:#000428;--bg2:#004e92;--gold:#ffb800;--line:#9fb4ff;--ok:#1db954;--bad:#e53935;--sel:#ff8c00;--text:#fff}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:system-ui,sans-serif;color:var(--text);background:radial-gradient(circle at 50% 20%,var(--bg2),var(--bg1) 70%) fixed}
+h1{text-align:center;color:var(--gold);margin:24px 16px 4px;font-size:clamp(1.4rem,4vw,2.4rem);text-shadow:0 0 12px #ffb80088}
+.sub{text-align:center;opacity:.8;margin:0 16px 24px}
+.screen{display:none;max-width:1100px;margin:0 auto;padding:0 16px 32px}
+.screen.on{display:block}
+#cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.cat,.ans,button.big{font:inherit;color:var(--text);cursor:pointer;border:2px solid var(--line);background:linear-gradient(#0a1a5c,#000a33)}
+.cat{padding:18px;border-radius:12px;font-size:1.1rem;text-align:left}
+.cat small{display:block;opacity:.7;font-size:.8rem;margin-top:4px}
+.cat:hover{border-color:var(--gold)}.ans:not(:disabled):hover{filter:brightness(1.4)}
+.game{display:grid;grid-template-columns:1fr 230px;gap:20px}
+.top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.life{font:inherit;font-size:.95rem;padding:8px 14px;border-radius:999px;border:2px solid var(--line);background:#000a33;color:var(--text);cursor:pointer}
+.life:disabled{opacity:.3;text-decoration:line-through;cursor:default}
+.top .spacer{flex:1}
+.q{clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%);background:linear-gradient(#0a1a5c,#000a33);border:0;padding:28px 8%;text-align:center;font-size:clamp(1.05rem,2.4vw,1.4rem);min-height:110px;display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ans{clip-path:polygon(5% 0,95% 0,100% 50%,95% 100%,5% 100%,0 50%);padding:16px 8%;text-align:left;font-size:1.05rem;min-height:58px;border:0;background:linear-gradient(#1a2f8a,#000a33)}
+.ans b{color:var(--gold);margin-right:8px}
+.ans:disabled{cursor:default}
+.ans.hide{visibility:hidden}
+.ans.sel{background:var(--sel);color:#000}
+.ans.ok{background:var(--ok);animation:blink .3s 4}
+.ans.bad{background:var(--bad)}
+@keyframes blink{50%{filter:brightness(1.6)}}
+.ladder{list-style:none;margin:0;padding:8px;border:2px solid var(--line);border-radius:12px;background:#000a33cc;display:flex;flex-direction:column-reverse;font-variant-numeric:tabular-nums}
+.ladder li{padding:4px 10px;border-radius:6px;display:flex;justify-content:space-between;color:var(--gold)}
+.ladder li.safe{color:#fff;font-weight:700}
+.ladder li.cur{background:var(--sel);color:#000}
+.ladder li.done{opacity:.5}
+.meta{opacity:.8;font-size:.9rem;margin-top:14px;text-align:center}
+dialog{background:linear-gradient(#0a1a5c,#000a33);color:var(--text);border:2px solid var(--gold);border-radius:16px;max-width:min(460px,calc(100vw - 32px));padding:24px}
+dialog::backdrop{background:#000a}
+dialog h2{margin-top:0;color:var(--gold)}
+.bars{display:flex;gap:14px;align-items:flex-end;height:160px;margin:12px 0}
+.bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
+.bar i{display:block;width:100%;background:var(--gold);border-radius:4px 4px 0 0}
+button.big{padding:10px 22px;border-radius:999px;margin-top:12px;font-size:1rem}
+@media (max-width:760px){.game{grid-template-columns:1fr}.ladder{display:none}.answers{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<h1>Who Wants to Be a Car Millionaire?</h1>
+<p class="sub" id="sub">Pick a category. 15 questions. 3 lifelines. €1,000,000.</p>
+
+<section class="screen on" id="menu"><div id="cats"></div><p class="meta" id="best"></p></section>
+
+<section class="screen" id="play">
+  <div class="game">
+    <div>
+      <div class="top">
+        <button class="life" id="l50">50:50</button>
+        <button class="life" id="laud">📊 Ask the audience</button>
+        <button class="life" id="lphone">📞 Phone a friend</button>
+        <span class="spacer"></span>
+        <button class="life" id="walk">🚶 Walk away</button>
+      </div>
+      <div class="q" id="q"></div>
+      <div class="answers" id="answers"></div>
+      <p class="meta" id="status"></p>
+    </div>
+    <ol class="ladder" id="ladder"></ol>
+  </div>
+</section>
+
+<dialog id="dlg"><h2 id="dt"></h2><div id="db"></div><form method="dialog"><button class="big" id="dbtn">OK</button></form></dialog>
+
+<script>
+// Data: "Brand:model,model,..." per category; trivia "question|correct|wrong|wrong|wrong".
+const CATS = {
+  German: {flag:'🇩🇪', country:'Germany', brands:[
+    'Volkswagen:Golf,Passat,Polo,Tiguan,Touareg,Beetle,Scirocco,Arteon,ID.3,Up!',
+    'BMW:3 Series,M3,X5,Z4,i8,i3,7 Series,M5,Isetta',
+    'Mercedes-Benz:G-Class,SLK,S-Class,SLS AMG,Sprinter,CLA,A-Class,EQS,300 SL',
+    'Audi:A4,Q7,R8,TT,RS6,e-tron GT,Quattro,A8',
+    'Porsche:911,Cayenne,Boxster,Taycan,Panamera,Macan,Carrera GT,918 Spyder',
+    'Opel:Astra,Corsa,Insignia,Vectra,Kadett,Manta,Mokka,Zafira'],
+  t2:[
+    'What does BMW stand for?|Bayerische Motoren Werke|Berliner Motor Werke|Bavarian Motor Wagons|Bremer Motoren Werke',
+    'In which city is Porsche headquartered?|Stuttgart|Munich|Wolfsburg|Ingolstadt',
+    'In which city is Volkswagen headquartered?|Wolfsburg|Stuttgart|Hamburg|Cologne',
+    'The four rings of Audi represent how many merged companies?|4|3|5|6',
+    'AMG is the performance division of which brand?|Mercedes-Benz|BMW|Audi|Porsche',
+    'The Mercedes-Benz 300 SL is famous for which kind of doors?|Gullwing|Butterfly|Scissor|Suicide',
+    'Which car was the original German "people\'s car"?|VW Beetle|Opel Kadett|Trabant|BMW Isetta'],
+  t3:[
+    'In which year was the Porsche 911 first shown?|1963|1958|1969|1972',
+    'Who founded Porsche?|Ferdinand Porsche|Ferdinand Piëch|Wilhelm Maybach|Gottlieb Daimler',
+    'Karl Benz\'s Patent-Motorwagen, often called the first car, dates from which year?|1886|1876|1895|1901',
+    'The name "Mercedes" came from the daughter of which businessman?|Emil Jellinek|Karl Benz|Gottlieb Daimler|Wilhelm Maybach',
+    'What does Audi\'s slogan "Vorsprung durch Technik" mean?|Progress through technology|Sheer driving pleasure|The best or nothing|Engineered for life',
+    'What does the "M" in BMW M stand for?|Motorsport|Maximum|München|Mechanik',
+    'Roughly how many original VW Beetles were built?|Over 21 million|About 5 million|About 10 million|Over 40 million',
+    'Which East German car had a body made of Duroplast?|Trabant|Wartburg|Barkas|Opel Rekord',
+    'Which BMW first wore the kidney grille, in 1933?|303|328|507|Isetta']},
+  Japanese: {flag:'🇯🇵', country:'Japan', brands:[
+    'Toyota:Corolla,Supra,Prius,Land Cruiser,Hilux,Camry,RAV4,Yaris,GR86,Celica',
+    'Honda:Civic,NSX,Accord,S2000,CR-V,Jazz,Integra,Prelude',
+    'Nissan:GT-R,Skyline,Leaf,Qashqai,350Z,Silvia,Micra,Patrol',
+    'Mazda:MX-5,RX-7,RX-8,CX-5,CX-30,Cosmo,787B',
+    'Subaru:Impreza,WRX STI,Forester,Outback,BRZ,Legacy',
+    'Mitsubishi:Lancer Evolution,Pajero,Eclipse,3000GT,Outlander,Galant',
+    'Lexus:LFA,LS 400,RX,IS,LC 500',
+    'Suzuki:Swift,Jimny,Vitara,Alto,Cappuccino'],
+  t2:[
+    'Which car is nicknamed "Godzilla"?|Nissan GT-R|Toyota Supra|Mazda RX-7|Honda NSX',
+    'What kind of engine powers the Mazda RX-7?|Rotary (Wankel)|V8|Flat-six|Diesel',
+    'Lexus is the luxury brand of which company?|Toyota|Honda|Nissan|Mazda',
+    'Acura is the luxury brand of which company?|Honda|Toyota|Nissan|Mitsubishi',
+    'Infiniti is the luxury brand of which company?|Nissan|Toyota|Subaru|Suzuki',
+    'Which is the best-selling car nameplate of all time?|Toyota Corolla|VW Beetle|Ford Model T|Honda Civic',
+    'Under which name were Nissans sold in many export markets until the 1980s?|Datsun|Prince|Isuzu|Daihatsu'],
+  t3:[
+    'Which car gave Japan its first Le Mans 24 Hours win, in 1991?|Mazda 787B|Toyota TS010|Nissan R390|Honda NSX',
+    'Toyota was founded by Kiichiro ___?|Toyoda|Toyama|Honda|Matsuda',
+    'In which year did the Toyota Prius first go on sale in Japan?|1997|2001|1993|2004',
+    'Which F1 driver helped develop the original Honda NSX?|Ayrton Senna|Alain Prost|Nigel Mansell|Michael Schumacher',
+    'The stars in the Subaru logo depict which star cluster?|Pleiades|Orion|Big Dipper|Andromeda',
+    'What was Mazda\'s company name before 1984?|Toyo Kogyo|Matsuda Heavy Industries|Hiroshima Motors|Mazda Motor Works',
+    'What engine does the Lexus LFA use?|4.8 L V10|5.0 L V8|6.0 L V12|3.8 L twin-turbo V6',
+    'Japanese makers kept a "gentleman\'s agreement" power cap until 2004. What was it?|276 hp|250 hp|300 hp|320 hp']},
+  American: {flag:'🇺🇸', country:'USA', brands:[
+    'Ford:Mustang,F-150,GT40,Bronco,Model T,Focus,Explorer,Thunderbird',
+    'Chevrolet:Corvette,Camaro,Impala,Silverado,Bel Air,Tahoe,Malibu,Bolt',
+    'Dodge:Viper,Challenger,Charger,Durango,Demon',
+    'Tesla:Model S,Model 3,Model X,Model Y,Cybertruck,Roadster',
+    'Cadillac:Escalade,Eldorado,DeVille,CTS-V,Lyriq',
+    'Jeep:Wrangler,Cherokee,Grand Cherokee,Gladiator,Renegade',
+    'Pontiac:Firebird,GTO,Trans Am,Fiero,Aztek'],
+  t2:[
+    'In which year did Ford introduce the moving assembly line?|1913|1903|1925|1908',
+    'Which car is called "America\'s sports car"?|Chevrolet Corvette|Ford Mustang|Dodge Viper|Chevrolet Camaro',
+    'Which city is nicknamed "Motor City"?|Detroit|Chicago|Pittsburgh|Cleveland',
+    'Which company owns Jeep (since 2021)?|Stellantis|General Motors|Ford|Tesla',
+    'What is the Chevrolet logo commonly called?|The bowtie|The arrow|The cross|The shield',
+    'Henry Ford said the Model T came in any colour "so long as it is ___"?|Black|White|Red|Blue',
+    'What was Tesla\'s first production car?|Roadster|Model S|Model X|Model 3'],
+  t3:[
+    'In which year did Ford first beat Ferrari to win Le Mans with the GT40?|1966|1964|1970|1959',
+    'Who was Tesla\'s first CEO?|Martin Eberhard|Elon Musk|JB Straubel|Marc Tarpenning',
+    'Racing driver Louis Chevrolet co-founded Chevrolet with whom?|William C. Durant|Henry Ford|Walter Chrysler|Ransom Olds',
+    'Cadillac is named after the founder of which city?|Detroit|New Orleans|Montreal|St. Louis',
+    'What engine powered the original Dodge Viper?|8.0 L V10|7.0 L V8|6.2 L supercharged V8|5.7 L HEMI V8',
+    'Roughly how many Ford Model Ts were built?|15 million|5 million|30 million|1 million',
+    'In which country was the DeLorean DMC-12 built?|United Kingdom|USA|Mexico|Italy',
+    'The Shelby Cobra was based on which British car?|AC Ace|Triumph TR3|MG A|Austin-Healey 100']},
+  Italian: {flag:'🇮🇹', country:'Italy', brands:[
+    'Ferrari:F40,Enzo,LaFerrari,Testarossa,458 Italia,F8 Tributo,250 GTO,Roma,SF90',
+    'Lamborghini:Countach,Miura,Diablo,Murciélago,Aventador,Huracán,Urus,Gallardo',
+    'Maserati:Quattroporte,GranTurismo,MC20,Ghibli,Levante,Bora',
+    'Alfa Romeo:Giulia,Stelvio,4C,Spider,8C Competizione,Giulietta',
+    'Fiat:500,Panda,Punto,Uno,Multipla,124 Spider,Tipo',
+    'Lancia:Delta Integrale,Stratos,Ypsilon,037,Fulvia',
+    'Pagani:Zonda,Huayra,Utopia'],
+  t2:[
+    'Which animal is on the Ferrari badge?|Prancing horse|Raging bull|Lion|Eagle',
+    'Which animal is on the Lamborghini badge?|Raging bull|Prancing horse|Serpent|Lion',
+    'What is on the Maserati badge?|Trident|Serpent|Crown|Shield',
+    'In which town is Ferrari based?|Maranello|Sant\'Agata Bolognese|Turin|Milan',
+    'In which town is Lamborghini based?|Sant\'Agata Bolognese|Maranello|Modena|Turin',
+    'What did Ferruccio Lamborghini make before cars?|Tractors|Motorcycles|Aircraft|Boats'],
+  t3:[
+    'The Ferrari F40 was the last car approved by whom?|Enzo Ferrari|Luca di Montezemolo|Sergio Marchionne|Piero Ferrari',
+    'What does the Ferrari F40 name celebrate?|Ferrari\'s 40th anniversary|40 cars built|400 hp|A 40-second lap record',
+    'The Lamborghini Miura made which layout famous on road supercars?|Mid-engine|Front-engine|Rear-engine|Four-wheel drive',
+    'What does FIAT stand for?|Fabbrica Italiana Automobili Torino|Federazione Italiana Auto Torino|Fabbrica Industriale Auto Torino|Fondazione Italiana Automobili Trento',
+    'Alfa Romeo\'s badge shows a serpent and what?|Red cross|Lion|Eagle|Horse',
+    'Which Lancia won six straight WRC manufacturers\' titles (1987–1992)?|Delta|Stratos|037|Fulvia',
+    'How many Ferrari 250 GTOs were built (classic count)?|36|12|100|250',
+    'Pagani founder Horacio Pagani was born in which country?|Argentina|Italy|Spain|Brazil',
+    'Who designed the Lamborghini Countach?|Marcello Gandini|Giorgetto Giugiaro|Battista Pininfarina|Ian Callum']},
+  British: {flag:'🇬🇧', country:'United Kingdom', brands:[
+    'Aston Martin:DB5,Vantage,DBS,Valkyrie,DB11,Vanquish,DBX',
+    'Jaguar:E-Type,XJ,F-Type,XK120,I-Pace,XJ220',
+    'Land Rover:Defender,Discovery,Range Rover,Freelander',
+    'McLaren:F1,P1,720S,Senna,Speedtail,570S,Artura',
+    'Rolls-Royce:Phantom,Ghost,Cullinan,Silver Shadow,Spectre,Wraith',
+    'Bentley:Continental GT,Bentayga,Mulsanne,Flying Spur',
+    'Lotus:Elise,Esprit,Exige,Evora,Emira,Seven',
+    'Mini:Cooper S,Countryman,Clubman,Paceman'],
+  t2:[
+    'Which car did James Bond drive in Goldfinger (1964)?|Aston Martin DB5|Jaguar E-Type|Lotus Esprit|Bentley Continental',
+    'What is the Rolls-Royce bonnet mascot called?|Spirit of Ecstasy|Flying B|Leaper|Silver Lady',
+    'Which of these British brands is owned by BMW?|Mini|Jaguar|Aston Martin|McLaren',
+    'Which company owns Jaguar Land Rover?|Tata Motors|BMW|Volkswagen|Geely'],
+  t3:[
+    'Who designed the McLaren F1 road car?|Gordon Murray|Adrian Newey|Ian Callum|Frank Stephenson',
+    'What is unusual about the McLaren F1\'s seating?|Three seats, driver in the middle|Four seats|One seat|Driver on the left only',
+    'Enzo Ferrari reportedly called which car "the most beautiful car ever made"?|Jaguar E-Type|Aston Martin DB5|Lotus Elan|AC Cobra',
+    'Which group owns Bentley?|Volkswagen Group|BMW|Tata Motors|Geely',
+    'Who founded Lotus?|Colin Chapman|Bruce McLaren|Frank Williams|Henry Royce',
+    'What does "DB" stand for in Aston Martin models?|David Brown|Double Bore|Dual Body|Derby Built',
+    'In which year did the first Land Rover debut?|1948|1938|1955|1961',
+    'Who designed the original Mini?|Alec Issigonis|Colin Chapman|John Cooper|William Lyons']},
+  French: {flag:'🇫🇷', country:'France', brands:[
+    'Renault:Clio,Mégane,Twingo,Espace,5 Turbo,Zoe,Captur',
+    'Peugeot:205,206,307,405,504,3008,208',
+    'Citroën:2CV,DS,Xsara,C4,Berlingo,Traction Avant,SM,Saxo',
+    'Bugatti:Veyron,Chiron,Type 35,Divo,Bolide',
+    'Alpine:A110,A310,A610,A290'],
+  t2:[
+    'Which animal is on the Peugeot badge?|Lion|Horse|Eagle|Rooster',
+    'Which brand\'s logo is a double chevron?|Citroën|Renault|Peugeot|Alpine',
+    'Which brand\'s logo is a diamond?|Renault|Citroën|Peugeot|Bugatti',
+    'What does "2CV" refer to?|Two fiscal horsepower|Two-cylinder V engine|Two-door convertible|Second version',
+    'In which town is Bugatti based?|Molsheim|Paris|Lyon|Le Mans'],
+  t3:[
+    'In which country was Ettore Bugatti born?|Italy|France|Germany|Switzerland',
+    'What was the Bugatti Veyron 16.4\'s top speed?|407 km/h|350 km/h|450 km/h|380 km/h',
+    'In which year was the Citroën DS introduced?|1955|1948|1962|1970',
+    'What kind of suspension made the Citroën DS famous?|Hydropneumatic|Air bags|Leaf springs|Magnetic',
+    'Peugeot\'s "zero in the middle" names forced which maker to rename its 901?|Porsche|Ferrari|BMW|Saab',
+    'Where is the engine in the Renault 5 Turbo?|Behind the front seats (mid)|Front|Over the rear axle|Under the boot floor',
+    'Which French maker won the F1 constructors\' title in 2005 and 2006?|Renault|Peugeot|Citroën|Alpine',
+    'In which years did the Peugeot 205 T16 win the WRC manufacturers\' title?|1985 and 1986|1982 and 1983|1990 and 1991|1987 and 1988']},
+  Swedish: {flag:'🇸🇪', country:'Sweden', brands:[
+    'Volvo:240,XC90,P1800,V70,850,XC60,Amazon,EX30',
+    'Saab:900,9-3,9-5,99,96,Sonett',
+    'Koenigsegg:Agera,Jesko,Regera,CCX,One:1,Gemera'],
+  t2:[
+    'Volvo invented and gave away the patent for what?|Three-point seatbelt|Airbag|ABS brakes|Crumple zone',
+    'What did Saab build before cars?|Aircraft|Trucks|Ships|Bicycles',
+    'Who founded Koenigsegg?|Christian von Koenigsegg|Ingvar Kamprad|Victor Muller|Assar Gabrielsson'],
+  t3:[
+    'What does "Volvo" mean in Latin?|I roll|I drive|I fly|Safety',
+    'Which company has owned Volvo Cars since 2010?|Geely|Ford|Tata Motors|BYD',
+    'Koenigsegg\'s "ghost" badge comes from what?|An air force squadron that used its hangar|A Swedish legend|The founder\'s family crest|A racing team',
+    'In which year did Saab Automobile go bankrupt?|2011|2005|2015|2008',
+    'What does the Koenigsegg "One:1" name refer to?|1 hp per kg of weight|1 car built|1st place at Le Mans|1 second 0–100 lap',
+    'Which Volvo set a world record of over 3 million miles with one owner?|P1800|240|Amazon|850',
+    'In which town is Koenigsegg based?|Ängelholm|Gothenburg|Trollhättan|Stockholm']},
+  Korean: {flag:'🇰🇷', country:'South Korea', brands:[
+    'Hyundai:i30,Tucson,Santa Fe,Ioniq 5,Pony,Elantra,Kona',
+    'Kia:Sportage,Ceed,Stinger,EV6,Picanto,Sorento,Rio',
+    'Genesis:G70,G80,G90,GV80,GV60',
+    'SsangYong:Korando,Rexton,Musso,Tivoli'],
+  t2:[
+    'Which company is the largest shareholder of Kia?|Hyundai|Samsung|LG|Daewoo',
+    'Genesis is the luxury brand of which company?|Hyundai|Kia|SsangYong|Daewoo',
+    'What was Hyundai\'s first independently developed car (1975)?|Pony|Excel|Elantra|Accent',
+    'Where is Hyundai Motor Company headquartered?|Seoul|Busan|Ulsan|Incheon'],
+  t3:[
+    'Which Italian designed the Hyundai Pony?|Giorgetto Giugiaro|Marcello Gandini|Battista Pininfarina|Walter de Silva',
+    'Hyundai\'s "N" brand refers to Namyang and which racetrack?|Nürburgring|Monza|Suzuka|Silverstone',
+    'Kia design chief Peter Schreyer previously designed for which brand?|Audi|BMW|Ferrari|Volvo',
+    'What was SsangYong renamed to in 2023?|KG Mobility|Kia Global|Korea Motors|Daewoo Motors',
+    'Which Korean car maker was taken over by General Motors?|Daewoo|Samsung Motors|Asia Motors|SsangYong',
+    'In which year did the Hyundai Ioniq 5 win World Car of the Year?|2022|2020|2024|2019']}
+};
+
+const PRIZES = [100,200,300,500,1000,2000,4000,8000,16000,32000,64000,125000,250000,500000,1000000];
+const SAFE = [4, 9];
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n);
+const shuffle = a => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const euro = n => '€' + n.toLocaleString('en');
+
+// Flatten brand data once: [{brand, models, cat}]
+const BRANDS = Object.entries(CATS).flatMap(([cat, c]) => c.brands.map(s => { const [brand, m] = s.split(':'); return {brand, models: m.split(','), cat}; }));
+const trivia = (s, d) => { const [q, ...o] = s.split('|'); return {q, a: o[0], opts: o, d}; };
+
+function questionPool(cat, d) {
+  const cats = cat === 'All' ? Object.keys(CATS) : [cat];
+  const brands = BRANDS.filter(b => cats.includes(b.cat));
+  const others = b => { // distractor brands: same pool first, padded from all brands
+    const same = shuffle(brands.filter(x => x.brand !== b.brand));
+    return [...same, ...shuffle(BRANDS.filter(x => !same.includes(x) && x.brand !== b.brand))].slice(0, 3);
+  };
+  if (d === 1) {
+    const qs = brands.flatMap(b => b.models.map(m => ({q: `Which brand makes the ${m}?`, a: b.brand, opts: [b.brand, ...others(b).map(x => x.brand)]})));
+    if (cat === 'All') qs.push(...brands.map(b => {
+      const wrong = shuffle(Object.keys(CATS).filter(c => c !== b.cat)).slice(0, 3).map(c => CATS[c].country);
+      return {q: `Which country does ${b.brand} come from?`, a: CATS[b.cat].country, opts: [CATS[b.cat].country, ...wrong]};
+    }));
+    return qs;
+  }
+  const t = cats.flatMap(c => CATS[c]['t' + d].map(s => trivia(s, d)));
+  if (d === 2) return [...t, ...brands.map(b => {
+    const m = b.models[rnd(b.models.length)];
+    return {q: `Which of these is a ${b.brand} model?`, a: m, opts: [m, ...others(b).map(x => x.models[rnd(x.models.length)])]};
+  })];
+  return t;
+}
+
+let S;
+function start(cat) {
+  S = {cat, level: 0, used: new Set(), life: {l50: 1, laud: 1, lphone: 1}, cur: null, busy: false};
+  ['l50', 'laud', 'lphone', 'walk'].forEach(id => $(id).disabled = false);
+  $('sub').textContent = `${cat === 'All' ? '🌍 All cars' : CATS[cat].flag + ' ' + cat + ' cars'}`;
+  show('play');
+  next();
+}
+
+function next() {
+  const d = S.level < 5 ? 1 : S.level < 10 ? 2 : 3;
+  // Fall back to easier pools if a hard pool runs dry.
+  let pool = [];
+  for (let k = d; k >= 1 && !pool.length; k--) pool = questionPool(S.cat, k).filter(x => !S.used.has(x.q));
+  const q = pool[rnd(pool.length)];
+  S.used.add(q.q);
+  q.opts = shuffle(q.opts);
+  console.assert(new Set(q.opts).size === 4 && q.opts.includes(q.a), 'bad question', q);
+  S.cur = q; S.busy = false;
+  $('q').textContent = q.q;
+  $('answers').innerHTML = '';
+  q.opts.forEach((o, i) => {
+    const b = document.createElement('button');
+    b.className = 'ans';
+    b.innerHTML = `<b>${'ABCD'[i]}:</b>`;
+    b.append(o);
+    b.onclick = () => answer(b, o);
+    $('answers').append(b);
+  });
+  $('status').textContent = `Question ${S.level + 1} of 15 — playing for ${euro(PRIZES[S.level])}`;
+  renderLadder();
+}
+
+function renderLadder() {
+  $('ladder').innerHTML = PRIZES.map((p, i) =>
+    `<li class="${SAFE.includes(i) ? 'safe' : ''} ${i === S.level ? 'cur' : ''} ${i < S.level ? 'done' : ''}"><span>${i + 1}</span><span>${euro(p)}</span></li>`).join('');
+}
+
+const buttons = () => [...$('answers').children];
+const lock = on => { buttons().forEach(b => b.disabled = on); ['l50', 'laud', 'lphone', 'walk'].forEach(id => $(id).disabled = on || (id !== 'walk' && !S.life[id])); };
+
+function answer(btn, opt) {
+  if (S.busy) return;
+  S.busy = true;
+  lock(true);
+  btn.classList.add('sel');
+  setTimeout(() => {
+    const right = opt === S.cur.a;
+    buttons().forEach(b => { if (b.lastChild.textContent === S.cur.a) b.classList.add('ok'); });
+    if (!right) btn.classList.add('bad');
+    setTimeout(() => {
+      if (!right) {
+        const safe = [...SAFE].reverse().find(i => i < S.level);
+        return end(false, safe === undefined ? 0 : PRIZES[safe], `The correct answer was <b>${S.cur.a}</b>.`);
+      }
+      if (S.level === 14) return end(true, PRIZES[14], 'You answered all 15 questions!');
+      S.level++;
+      next();
+      lock(false);
+    }, 1800);
+  }, 1500);
+}
+
+function dialog(title, html, btn = 'OK') {
+  $('dt').textContent = title; $('db').innerHTML = html; $('dbtn').textContent = btn;
+  $('dlg').showModal();
+}
+
+function end(won, amount, msg) {
+  saveBest(amount);
+  dialog(won ? '🏆 MILLIONAIRE!' : amount ? '💰 Game over' : '💥 Game over', `<p>${msg}</p><p>You leave with <b style="color:var(--gold)">${euro(amount)}</b>.</p>`, 'Back to categories');
+  $('dlg').onclose = () => { $('dlg').onclose = null; show('menu'); };
+}
+
+function hidden() { return buttons().filter(b => b.classList.contains('hide')).map(b => b.lastChild.textContent); }
+
+$('l50').onclick = () => {
+  S.life.l50 = 0; $('l50').disabled = true;
+  shuffle(buttons().filter(b => b.lastChild.textContent !== S.cur.a)).slice(0, 2).forEach(b => { b.classList.add('hide'); b.disabled = true; });
+};
+
+$('laud').onclick = () => {
+  S.life.laud = 0; $('laud').disabled = true;
+  const gone = hidden();
+  const accuracy = 0.95 - S.level * 0.04; // audience gets less sure as questions get harder
+  const w = S.cur.opts.map(o => gone.includes(o) ? 0 : (o === S.cur.a && Math.random() < accuracy ? 40 + rnd(40) : 5 + rnd(30)));
+  const sum = w.reduce((a, b) => a + b, 0);
+  const pct = w.map(x => Math.round(x / sum * 100));
+  dialog('📊 Ask the audience', `<div class="bars">${pct.map((p, i) => `<div class="bar"><span>${p}%</span><i style="height:${p}%"></i><b>${'ABCD'[i]}</b></div>`).join('')}</div>`);
+};
+
+$('lphone').onclick = () => {
+  S.life.lphone = 0; $('lphone').disabled = true;
+  const left = S.cur.opts.filter(o => !hidden().includes(o));
+  const knows = Math.random() < 0.95 - S.level * 0.045;
+  const guess = knows ? S.cur.a : left[rnd(left.length)];
+  const letter = 'ABCD'[S.cur.opts.indexOf(guess)];
+  const line = knows && S.level < 10 ? `Easy one — it's <b>${letter}: ${guess}</b>. I'm sure.`
+    : knows ? `Hmm… I think it's <b>${letter}: ${guess}</b>. Pretty sure.`
+    : `No idea, honestly. Maybe <b>${letter}: ${guess}</b>? Don't trust me.`;
+  dialog('📞 Phone a friend', `<p>Your friend the car nerd says:</p><p>“${line}”</p>`);
+};
+
+$('walk').onclick = () => end(false, S.level ? PRIZES[S.level - 1] : 0, 'You walked away.');
+
+function saveBest(n) { try { if (n > (+localStorage.carBest || 0)) localStorage.carBest = n; } catch {} }
+function showBest() { let b = 0; try { b = +localStorage.carBest || 0; } catch {} $('best').textContent = b ? `Best win: ${euro(b)}` : ''; }
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  if (id === 'menu') { $('sub').textContent = 'Pick a category. 15 questions. 3 lifelines. €1,000,000.'; showBest(); }
+}
+
+$('cats').innerHTML = [['All', '🌍', 'All categories mixed']].concat(Object.entries(CATS).map(([k, c]) => [k, c.flag, `${c.brands.length} brands · ${BRANDS.filter(b => b.cat === k).reduce((n, b) => n + b.models.length, 0)} models`]))
+  .map(([k, f, s]) => `<button class="cat" data-cat="${k}">${f} ${k === 'All' ? 'All cars' : k + ' cars'}<small>${s}</small></button>`).join('');
+$('cats').onclick = e => { const b = e.target.closest('.cat'); if (b) start(b.dataset.cat); };
+show('menu');
+</script>
+</body>
+</html>
