@@ -3,44 +3,59 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Who Wants to Be a Car Millionaire?</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
+<title>Guess the Car</title>
+<meta name="description" content="A millionaire-style quiz about cars, Formula 1, rally and MotoGP.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;1,800&family=Barlow:wght@400;600&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 4'><rect width='4' height='4' fill='%23f2efe6'/><path d='M0 0h1v1H0zM2 0h1v1H2zM1 1h1v1H1zM3 1h1v1H3zM0 2h1v1H0zM2 2h1v1H2zM1 3h1v1H1zM3 3h1v1H3z' fill='%23141518'/></svg>">
 <script type="module" src="/src/main.ts"></script>
 </head>
 <body>
-<header><h1>🚗 Who Wants to Be a Car Millionaire?</h1><p class="sub" id="sub"></p></header>
+<header class="masthead">
+  <a class="mark" href="./">Guess <b>the</b> Car</a>
+  <p class="tag" id="sub"></p>
+</header>
+<div class="checker" aria-hidden="true"></div>
 
+<main>
 <section class="screen on" id="menu">
-  <div class="settings">
-    <label><input type="checkbox" id="optSound"> 🔊 Sound</label>
-    <label><input type="checkbox" id="optConfirm"> ✋ Ask "Final answer?"</label>
-    <label><input type="checkbox" id="optTimer"> ⏱️ 30 s timer</label>
-  </div>
+  <p class="intro">Fifteen questions between you and a million euros. Three lifelines. Get one wrong and you drop back to the last safe level. Pick a category to start.</p>
   <div id="cats"></div>
-  <p class="meta" id="best"></p>
-  <p class="meta">Keys: A–D or 1–4 answer · Enter confirm · F 50:50 · H audience · P phone · W walk away</p>
-  <p class="meta credit">Car photos load from Wikipedia / Wikimedia Commons (CC BY-SA).</p>
+  <div class="settings">
+    <label><input type="checkbox" id="optSound"> Sound</label>
+    <label><input type="checkbox" id="optConfirm"> Ask "final answer?"</label>
+    <label><input type="checkbox" id="optTimer"> 30 second clock</label>
+  </div>
+  <p class="best" id="best"></p>
+  <footer>
+    <p>Keyboard: A–D or 1–4 to answer, Enter to confirm, F 50:50, H audience, P phone, W walk away.</p>
+    <p>Photos from Wikipedia and Wikimedia Commons (CC BY-SA).</p>
+  </footer>
 </section>
 
 <section class="screen" id="play">
   <div class="game">
     <div>
       <div class="top">
-        <button class="life" id="l50" title="50:50 (F)">✂️ <span class="lbl">50:50</span></button>
-        <button class="life" id="laud" title="Ask the audience (H)">📊 <span class="lbl">Audience</span></button>
-        <button class="life" id="lphone" title="Phone a friend (P)">📞 <span class="lbl">Phone</span></button>
+        <button class="life" id="l50" title="50:50 (F)">50:50</button>
+        <button class="life" id="laud" title="Ask the audience (H)">Audience</button>
+        <button class="life" id="lphone" title="Phone a friend (P)">Phone</button>
         <span class="spacer"></span>
         <span class="timer" id="timer" hidden></span>
-        <button class="life" id="walk" title="Walk away (W)">🚶 <span class="lbl">Walk away</span></button>
+        <button class="life" id="walk" title="Walk away (W)">Walk<span class="wide"> away</span></button>
       </div>
       <div class="prog"><i id="prog"></i></div>
-      <div class="photo" id="photo" hidden><img id="pic" alt="Mystery car"></div>
-      <div class="stage"><div class="q" id="q"></div><div class="answers" id="answers"></div></div>
-      <p class="meta" id="status"></p>
+      <div class="photo" id="photo" hidden><img id="pic" alt="Mystery photo"></div>
+      <p class="qlabel" id="qlabel"></p>
+      <h2 class="q" id="q"></h2>
+      <div class="answers" id="answers"></div>
+      <p class="status" id="status"></p>
     </div>
     <ol class="ladder" id="ladder"></ol>
   </div>
 </section>
+</main>
 
 <dialog id="dlg"><h2 id="dt"></h2><div id="db"></div><form method="dialog" class="row" id="dbtns"></form></dialog>
 </body>

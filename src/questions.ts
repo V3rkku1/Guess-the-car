@@ -38,7 +38,6 @@ const trivia = (s: string): Question => { const [q, ...opts] = s.split('|'); ret
 const triviaOf = (cats: string[], d: 2 | 3) => cats.flatMap(c => CATS[c][d === 2 ? 't2' : 't3'].map(trivia));
 
 export const title = (cat: string) => cat === 'All' ? 'All cars' : CATS[cat].title ?? cat + ' cars';
-export const label = (cat: string) => `${cat === 'All' ? '🌍' : CATS[cat].flag} ${title(cat)}`;
 export const subtitle = (cat: string) => {
   const key = CATS[cat]?.series;
   if (key) { const l = SERIES[key].list; return `${new Set(l.map(c => c.name)).size} world champions · ${l[0].y}–${l.at(-1)!.y}`; }

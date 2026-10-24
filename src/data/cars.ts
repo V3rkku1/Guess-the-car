@@ -2,7 +2,7 @@
 // pick: reuse brands from other categories. series: a championship from series.ts.
 // Trivia: "question|correct|wrong|wrong|wrong", t2 = medium, t3 = hard.
 export interface Category {
-  flag: string;
+  code: string; // short badge shown on the menu, like a number plate
   title?: string;
   country?: string;
   brands?: string[];
@@ -13,7 +13,7 @@ export interface Category {
 }
 
 export const CATS: Record<string, Category> = {
-  'Formula 1': {flag:'🏁', title:'Formula 1', series: 'Formula 1',
+  'Formula 1': {code:'F1', title:'Formula 1', series: 'Formula 1',
   t2:[
     'Which team has won the most Constructors\' Championships?|Ferrari|McLaren|Williams|Mercedes',
     'Which two drivers share the record of seven world titles?|Lewis Hamilton & Michael Schumacher|Lewis Hamilton & Max Verstappen|Michael Schumacher & Juan Manuel Fangio|Ayrton Senna & Alain Prost',
@@ -34,7 +34,7 @@ export const CATS: Record<string, Category> = {
     'Which Japanese circuit has a figure-of-eight layout?|Suzuka|Fuji|Motegi|Okayama',
     'Which city hosted Formula 1\'s first night race, in 2008?|Singapore|Bahrain|Abu Dhabi|Kuala Lumpur']},
   // Cross-country category: reuses brands listed under their home country via "pick".
-  Rally: {flag:'🏔️', title:'Rally (WRC)', series: 'Rally',
+  Rally: {code:'WRC', title:'Rally (WRC)', series: 'Rally',
   t2:[
     'What does WRC stand for?|World Rally Championship|World Racing Cup|Winter Rally Circuit|World Road Championship',
     'Who won nine WRC titles in a row (2004–2012)?|Sébastien Loeb|Marcus Grönholm|Tommi Mäkinen|Juha Kankkunen',
@@ -50,7 +50,7 @@ export const CATS: Record<string, Category> = {
     'Who became the youngest WRC champion, in 2022?|Kalle Rovanperä|Sébastien Ogier|Colin McRae|Ott Tänak',
     'Which country has hosted the Dakar Rally since 2020?|Saudi Arabia|Morocco|Argentina|Senegal',
     'Which event was the first-ever WRC round, in January 1973?|Monte Carlo Rally|Rally Sweden|Safari Rally|RAC Rally']},
-  MotoGP: {flag:'🏍️', title:'MotoGP', series: 'MotoGP',
+  MotoGP: {code:'GP', title:'MotoGP', series: 'MotoGP',
   t2:[
     'Which rider is nicknamed "The Doctor"?|Valentino Rossi|Marc Márquez|Casey Stoner|Jorge Lorenzo',
     'Which rider made the number 93 famous?|Marc Márquez|Valentino Rossi|Francesco Bagnaia|Joan Mir',
@@ -67,7 +67,7 @@ export const CATS: Record<string, Category> = {
     'Which maker quit MotoGP in 2022, two years after winning the title?|Suzuki|Kawasaki|Yamaha|Honda',
     'Who won the first 10 races of 2014 on the way to 13 wins?|Marc Márquez|Jorge Lorenzo|Valentino Rossi|Dani Pedrosa']},
   // Cross-country category: "Brand" = all its models, "Brand:a,b" = only those, "Brand:-a,b" = all except those.
-  Sports: {flag:'🏎️', pick:['Ferrari:-Purosangue','Lamborghini:-Urus,LM002','Porsche:-Cayenne,Macan,Panamera,Taycan','McLaren','Bugatti','Pagani','Koenigsegg',
+  Sports: {code:'GT', pick:['Ferrari:-Purosangue','Lamborghini:-Urus,LM002','Porsche:-Cayenne,Macan,Panamera,Taycan','McLaren','Bugatti','Pagani','Koenigsegg',
     'Aston Martin:-DBX,Rapide,Lagonda,Cygnet','Lotus:-Eletre,Emeya','Maserati:-Quattroporte,Ghibli,Levante,Grecale','Alpine:-A390,A290','Rimac','De Tomaso:-Deauville',
     'TVR','Noble','Ariel','Caterham','Saleen','Shelby','Spyker','Morgan','Venturi','AC','Austin-Healey','Iso:Grifo','Jensen:Interceptor','DeLorean:DMC-12',
     'Nissan:GT-R,Skyline GT-R,Fairlady Z,240Z,350Z,370Z,300ZX,Silvia,180SX','Toyota:Supra,GR Supra,2000GT,MR2,Celica,GR86,GT86,GR Yaris,Sports 800',
@@ -95,7 +95,7 @@ export const CATS: Record<string, Category> = {
     'How many Porsche 918 Spyders were built?|918|500|1,000|99',
     'What is the name of the LaFerrari\'s hybrid system?|HY-KERS|e-Boost|E-Hybrid|KERS-X',
     'Which F1 designer co-developed the Aston Martin Valkyrie?|Adrian Newey|Gordon Murray|Rory Byrne|Patrick Head']},
-  German: {flag:'🇩🇪', country:'Germany', brands:[
+  German: {code:'DE', country:'Germany', brands:[
     'Volkswagen:Golf,Golf GTI,Passat,Polo,Tiguan,Touareg,Beetle,Scirocco,Arteon,ID.3,ID.4,ID. Buzz,Up!,Jetta,Corrado,Phaeton,Lupo,Fox,Sharan,Touran,T-Roc,T-Cross,Taigo,Amarok,Caddy,Transporter,Bora,Vento,Karmann Ghia,Type 2,Thing,Eos,CC,Teramont,Taos,Santana,Derby',
     'BMW:3/15 Dixi,303,315,319,326,327,335,501,502,503,507,Isetta,1600,1800,2000,1602,2002,2002 Turbo,New Class,2800,3.0 CS,3.0 CSL,M1,1 Series,1M,2 Series,2 Series Active Tourer,2 Series Gran Coupé,3 Series,3 Series Compact,3 Series Gran Turismo,4 Series,4 Series Gran Coupé,5 Series,5 Series Gran Turismo,6 Series,6 Series Gran Turismo,7 Series,8 Series,M2,M3,M3 CSL,M3 GTR,M4,M4 CSL,M5,M6,M8,M Coupé,M Roadster,X1,X2,X3,X3 M,X4,X4 M,X5,X5 M,X6,X6 M,X7,XM,Z1,Z3,Z4,Z8,i3,i4,i5,i7,i8,iX,iX1,iX2,iX3',
     'Mercedes-Benz:Simplex,SSK,SSKL,500K,540K,770,170V,Ponton,Fintail,Pagoda,300 SL,190 SL,300 SLR,600 Pullman,190E,500E,CLK GTR,A-Class,B-Class,C-Class,E-Class,S-Class,G-Class,G 63 AMG 6x6,CL-Class,CLA,CLA Shooting Brake,CLC,CLE,CLK,CLS,SL,SLK,SLC,SLS AMG,AMG GT,AMG GT 4-Door,AMG One,GLA,GLB,GLC,GLC Coupé,GLE,GLE Coupé,GLK,GLS,ML,GL,R-Class,EQA,EQB,EQC,EQE,EQE SUV,EQS,EQS SUV,EQV,EQT,V-Class,Viano,Vaneo,Vito,Metris,MB100,Sprinter,Citan,T-Class,X-Class,Unimog',
@@ -127,7 +127,7 @@ export const CATS: Record<string, Category> = {
     'Roughly how many original VW Beetles were built?|Over 21 million|About 5 million|About 10 million|Over 40 million',
     'Which East German car had a body made of Duroplast?|Trabant|Wartburg|Barkas|Opel Rekord',
     'Which BMW first wore the kidney grille, in 1933?|303|328|507|Isetta']},
-  Japanese: {flag:'🇯🇵', country:'Japan', brands:[
+  Japanese: {code:'JP', country:'Japan', brands:[
     'Toyota:AA,Crown,Corona,Publica,Sports 800,2000GT,Celica,Celica GT-Four,Carina,Carina ED,Corolla,Corolla Levin,Sprinter Trueno,Corolla Cross,Corolla Verso,Starlet,Tercel,Cressida,Mark II,Mark X,Chaser,Soarer,Supra,GR Supra,MR2,MR-S,Camry,Camry Solara,Vista,Avalon,Previa,Estima,Sienna,Lite Ace,Town Ace,Hiace,Granvia,Alphard,Vellfire,Noah,Voxy,Esquire,Sienta,Wish,Ipsum,Gaia,Nadia,Picnic,Avensis,Avensis Verso,Verso,Verso-S,Yaris,Yaris Cross,GR Yaris,Vitz,Echo,Platz,Belta,Etios,Agya,Aygo,Aygo X,iQ,Urban Cruiser,C-HR,RAV4,Harrier,Kluger,Highlander,Venza,4Runner,Hilux Surf,Land Cruiser,Land Cruiser Prado,FJ Cruiser,Mega Cruiser,Sequoia,Fortuner,Rush,Raize,Tacoma,Tundra,T100,Hilux,Prius,Prius c,Prius v,Prius Prime,Mirai,bZ4X,bZ3,Century,Origin,Celsior,Aristo,Altezza,Windom,Brevis,Progrès,Verossa,Allion,Premio,Caldina,Curren,Cynos,Paseo,Sera,GT86,GR86,GR Corolla,Avanza,Innova,Coaster,Passo,Matrix,Allex,Funcargo,bB,Will Vi',
     'Honda:Civic,Civic Type R,NSX,Accord,S2000,S800,S660,CR-V,HR-V,ZR-V,Jazz,Fit,Integra,Prelude,CR-X,Insight,Legend,Odyssey,Pilot,Ridgeline,Passport,Element,Beat,City,Stream,FR-V,Shuttle,Clarity,Concerto',
     'Nissan:GT-R,Skyline,Skyline GT-R,Fairlady Z,240Z,260Z,280Z,280ZX,300ZX,350Z,370Z,510,Silvia,180SX,200SX,240SX,Sileighty,Laurel,Cedric,Gloria,President,Cima,Fuga,Leopard,Stagea,Bluebird,Bluebird Sylphy,Sylphy,Sunny,Sentra,Pulsar,Almera,Almera Tino,Tiida,Versa,Micra,March,Note,Cube,Figaro,Pao,Be-1,S-Cargo,Rasheen,Juke,Kicks,Qashqai,X-Trail,Rogue,Murano,Pathfinder,Armada,Terrano,Terrano II,Patrol,Xterra,Navara,Frontier,Titan,Hardbody,Prairie,Serena,Elgrand,Quest,Presage,Lafesta,NV200,e-NV200,Primastar,Interstar,Vanette,Cabstar,Leaf,Ariya,Sakura,Maxima,Altima,Stanza,Primera,Teana,Cefiro,Lucino,Avenir,Wingroad,AD,Cherry,Violet,Langley,Auster,Moco,Dayz,Roox,Otti,Pino',
@@ -158,7 +158,7 @@ export const CATS: Record<string, Category> = {
     'What was Mazda\'s company name before 1984?|Toyo Kogyo|Matsuda Heavy Industries|Hiroshima Motors|Mazda Motor Works',
     'What engine does the Lexus LFA use?|4.8 L V10|5.0 L V8|6.0 L V12|3.8 L twin-turbo V6',
     'Japanese makers kept a "gentleman\'s agreement" power cap until 2004. What was it?|276 hp|250 hp|300 hp|320 hp']},
-  American: {flag:'🇺🇸', country:'USA', brands:[
+  American: {code:'US', country:'USA', brands:[
     'Ford:Mustang,Mustang Mach-E,F-150,F-250,Ranger,Maverick,GT40,GT,Bronco,Bronco Sport,Model T,Model A,Focus,Fiesta,Escort,Sierra,Mondeo,Granada,Cortina,Capri,Anglia,Puma,Kuga,Ka,Galaxy,S-Max,C-Max,Transit,Explorer,Expedition,Escape,Edge,Taurus,Fusion,Crown Victoria,Thunderbird,Fairlane,Falcon,Galaxie,Pinto,Probe,Torino,Excursion,Flex,Five Hundred,Courier,Consul,Zodiac,Sierra RS Cosworth',
     'Chevrolet:Corvette,Camaro,Impala,Silverado,Bel Air,Tahoe,Suburban,Malibu,Bolt,Volt,Chevelle,Nova,Caprice,Monte Carlo,El Camino,Corvair,Cobalt,Cruze,Spark,Sonic,Aveo,Trax,Equinox,Blazer,Traverse,Colorado,S-10,Avalanche,Astro,Cavalier,Celebrity,Citation,Lumina,Beretta,HHR,SSR,Vega,Biscayne,Kodiak',
     'Dodge:Viper,Challenger,Charger,Durango,Demon,Dart,Neon,Caravan,Grand Caravan,Journey,Nitro,Caliber,Avenger,Stealth,Magnum,Coronet,Super Bee,Daytona,Dakota,Intrepid,Stratus,Polara,Omni,Hornet,Ramcharger',
@@ -202,7 +202,7 @@ export const CATS: Record<string, Category> = {
     'Roughly how many Ford Model Ts were built?|15 million|5 million|30 million|1 million',
     'In which country was the DeLorean DMC-12 built?|United Kingdom|USA|Mexico|Italy',
     'The Shelby Cobra was based on which British car?|AC Ace|Triumph TR3|MG A|Austin-Healey 100']},
-  Italian: {flag:'🇮🇹', country:'Italy', brands:[
+  Italian: {code:'IT', country:'Italy', brands:[
     'Ferrari:F40,F50,Enzo,LaFerrari,Testarossa,512 TR,458 Italia,488 GTB,F8 Tributo,296 GTB,250 GTO,250 GT California,275 GTB,288 GTO,308 GTS,328,348,355,360 Modena,430 Scuderia,F430,California,Portofino,Roma,SF90 Stradale,812 Superfast,599 GTB,575M Maranello,550 Maranello,456,FF,GTC4Lusso,Dino 246,365 GTB/4 Daytona,Purosangue,Monza SP1,12Cilindri,Mondial,F12berlinetta,Superamerica',
     'Lamborghini:Countach,Miura,Diablo,Murciélago,Aventador,Huracán,Urus,Gallardo,Revuelto,Espada,Jarama,Islero,Urraco,Jalpa,LM002,Reventón,Sesto Elemento,Veneno,Centenario,Sián,Temerario,350 GT,400 GT,Egoista',
     'Maserati:Quattroporte,GranTurismo,GranCabrio,MC20,MC12,Ghibli,Levante,Grecale,Bora,Merak,Khamsin,Biturbo,Shamal,Spyder,3200 GT,Mistral,Indy,Mexico,Kyalami,Karif,A6GCS',
@@ -231,7 +231,7 @@ export const CATS: Record<string, Category> = {
     'How many Ferrari 250 GTOs were built (classic count)?|36|12|100|250',
     'Pagani founder Horacio Pagani was born in which country?|Argentina|Italy|Spain|Brazil',
     'Who designed the Lamborghini Countach?|Marcello Gandini|Giorgetto Giugiaro|Battista Pininfarina|Ian Callum']},
-  British: {flag:'🇬🇧', country:'United Kingdom', brands:[
+  British: {code:'GB', country:'United Kingdom', brands:[
     'Aston Martin:DB2,DB4,DB5,DB6,DB7,DB9,DB10,DB11,DB12,DBS,DBS Superleggera,Vantage,V8 Vantage,V12 Vantage,Valkyrie,Valhalla,Vanquish,Virage,Vulcan,One-77,Rapide,Lagonda,Cygnet,DBX,Bulldog',
     'Jaguar:E-Type,D-Type,C-Type,XJ,XJS,XJ220,XJR,XK,XK8,XK120,XK140,XK150,XKR,XF,XE,X-Type,S-Type,F-Type,F-Pace,E-Pace,I-Pace,Mark 2,C-X75,Project 7',
     'Land Rover:Defender,Discovery,Discovery Sport,Range Rover,Range Rover Sport,Range Rover Velar,Range Rover Evoque,Freelander,Series I,Series II,Series III',
@@ -271,7 +271,7 @@ export const CATS: Record<string, Category> = {
     'What does "DB" stand for in Aston Martin models?|David Brown|Double Bore|Dual Body|Derby Built',
     'In which year did the first Land Rover debut?|1948|1938|1955|1961',
     'Who designed the original Mini?|Alec Issigonis|Colin Chapman|John Cooper|William Lyons']},
-  French: {flag:'🇫🇷', country:'France', brands:[
+  French: {code:'FR', country:'France', brands:[
     'Renault:Clio,Clio V6,Mégane,Mégane RS,Twingo,Espace,5 Turbo,Zoe,Captur,Kadjar,Koleos,Arkana,Austral,Rafale,Scénic,Laguna,Safrane,Vel Satis,Avantime,Fuego,Dauphine,Floride,Caravelle,Kangoo,Trafic,Master,Modus,Wind,Fluence,Latitude,Talisman,Symbol,Alaskan,Twizy,Sport Spider,Estafette',
     'Peugeot:104,106,107,108,205,206,207,208,2008,301,304,305,306,307,308,309,3008,404,405,406,407,408,4007,5008,504,505,508,604,605,607,806,807,RCZ,Partner,Expert,Boxer,Bipper,iOn,Rifter,Traveller,Landtrek,402,203,403',
     'Citroën:2CV,DS,ID,SM,CX,GS,BX,AX,ZX,XM,Xantia,Xsara,Xsara Picasso,C1,C2,C3,C3 Aircross,C4,C4 Cactus,C5,C5 Aircross,C6,C8,C-Crosser,C-Zero,Ami,Méhari,Dyane,Visa,Saxo,Berlingo,Jumper,Jumpy,Traction Avant,H Van,Evasion,Nemo,LNA',
@@ -297,7 +297,7 @@ export const CATS: Record<string, Category> = {
     'Where is the engine in the Renault 5 Turbo?|Behind the front seats (mid)|Front|Over the rear axle|Under the boot floor',
     'Which French maker won the F1 constructors\' title in 2005 and 2006?|Renault|Peugeot|Citroën|Alpine',
     'In which years did the Peugeot 205 T16 win the WRC manufacturers\' title?|1985 and 1986|1982 and 1983|1990 and 1991|1987 and 1988']},
-  Swedish: {flag:'🇸🇪', country:'Sweden', brands:[
+  Swedish: {code:'SE', country:'Sweden', brands:[
     'Volvo:140,144,240,244,262C,340,360,440,460,480,740,760,780,850,940,960,C30,C40,C70,S40,S60,S70,S80,S90,V40,V50,V60,V70,V90,XC40,XC60,XC70,XC90,EX30,EX90,P1800,PV444,PV544,Amazon,Duett,P1900',
     'Saab:92,93,95,96,99,900,9000,9-2X,9-3,9-4X,9-5,9-7X,Sonett',
     'Koenigsegg:CC8S,CCR,CCX,CCXR,Agera,Agera RS,One:1,Regera,Jesko,Gemera,CC850'],
@@ -313,7 +313,7 @@ export const CATS: Record<string, Category> = {
     'What does the Koenigsegg "One:1" name refer to?|1 hp per kg of weight|1 car built|1st place at Le Mans|1 second 0–100 lap',
     'Which Volvo set a world record of over 3 million miles with one owner?|P1800|240|Amazon|850',
     'In which town is Koenigsegg based?|Ängelholm|Gothenburg|Trollhättan|Stockholm']},
-  Korean: {flag:'🇰🇷', country:'South Korea', brands:[
+  Korean: {code:'KR', country:'South Korea', brands:[
     'Hyundai:Pony,Excel,Stellar,Sonata,Elantra,Accent,Atos,Getz,i10,i20,i30,i40,ix35,Tucson,Santa Fe,Palisade,Kona,Venue,Bayon,Creta,Ioniq,Ioniq 5,Ioniq 6,Nexo,Veloster,Tiburon,Grandeur,Azera,Equus,Terracan,Galloper,Trajet,Lantra,Scoupe,Staria,Starex,Casper,Santamo,Dynasty',
     'Kia:Pride,Rio,Picanto,Ceed,ProCeed,Cerato,Forte,Optima,K5,K8,K9,Stinger,Sportage,Sorento,Seltos,Stonic,Niro,Soul,Telluride,Carnival,Sedona,Carens,Venga,Magentis,Opirus,Mohave,Shuma,Sephia,Clarus,Retona,EV3,EV6,EV9,Borrego',
     'Genesis:G70,G80,G90,GV60,GV70,GV80',
@@ -332,7 +332,7 @@ export const CATS: Record<string, Category> = {
     'What was SsangYong renamed to in 2023?|KG Mobility|Kia Global|Korea Motors|Daewoo Motors',
     'Which Korean car maker was taken over by General Motors?|Daewoo|Samsung Motors|Asia Motors|SsangYong',
     'In which year did the Hyundai Ioniq 5 win World Car of the Year?|2022|2020|2024|2019']},
-  Chinese: {flag:'🇨🇳', country:'China', brands:[
+  Chinese: {code:'CN', country:'China', brands:[
     'BYD:F3,Qin,Han,Tang,Song,Song Plus,Yuan Plus,Atto 3,Dolphin,Seal,Seal U,Sealion 7,Seagull,Shark,e6,Destroyer 05,Frigate 07',
     'Geely:Emgrand,Coolray,Monjaro,Atlas,Tugella,Boyue,Okavango,Geometry C,Xingyue,Starray,EX5',
     'NIO:ES6,ES8,EC6,EC7,ET5,ET7,ET9,EL6,EL7,EP9',
@@ -361,7 +361,7 @@ export const CATS: Record<string, Category> = {
     'Which phone maker launched the SU7 electric car in 2024?|Xiaomi|Huawei|Oppo|Vivo',
     'What does "Hongqi" mean?|Red Flag|Great Wall|Golden Dragon|Rising Sun',
     'Which Chinese company co-owns Smart with Mercedes-Benz?|Geely|BYD|Great Wall|Changan']},
-  World: {flag:'🗺️', brands:[
+  World: {code:'INT', brands:[
     'Škoda/Czech Republic:Octavia,Fabia,Superb,Kodiaq,Karoq,Kamiq,Scala,Rapid,Yeti,Roomster,Citigo,Felicia,Favorit,Enyaq,Elroq,Estelle,120,130 RS,Popular,1000 MB,110 R',
     'Tatra/Czech Republic:603,613,T87,T77,700',
     'SEAT/Spain:Ibiza,León,Toledo,Arona,Ateca,Tarraco,Alhambra,Altea,Córdoba,Exeo,Marbella,Malaga,Arosa,Mii,Fura,Ronda',
