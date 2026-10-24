@@ -39,7 +39,7 @@ export const CATS: Record<string, Category> = {
   t2:[
     'What does WRC stand for?|World Rally Championship|World Racing Cup|Winter Rally Circuit|World Road Championship',
     'Who won nine WRC titles in a row (2004–2012)?|Sébastien Loeb|Marcus Grönholm|Tommi Mäkinen|Juha Kankkunen',
-    'Which rally starts in Monaco and is famous for icy Alpine night stages?|Monte Carlo Rally|Rally Finland|Safari Rally|Rally Sweden',
+    'Which WRC event is famous for icy mountain stages in the Alps near Monaco?|Monte Carlo Rally|Rally Finland|Safari Rally|Rally Sweden',
     'Rally Finland is famous for what?|Huge jumps on fast gravel roads|Snow-only stages|Desert dunes|Night street stages',
     'Which WRC round is traditionally run on snow and ice?|Rally Sweden|Rally Portugal|Acropolis Rally|Rally Argentina',
     'In rallying, who reads the pace notes to the driver?|The co-driver|The team manager|The engineer|The marshal'],
@@ -50,7 +50,8 @@ export const CATS: Record<string, Category> = {
     'Who was the first woman to win a WRC event, at the 1981 Sanremo Rally?|Michèle Mouton|Jutta Kleinschmidt|Pat Moss|Isolde Holderied',
     'Who became the youngest WRC champion, in 2022?|Kalle Rovanperä|Sébastien Ogier|Colin McRae|Ott Tänak',
     'Which country has hosted the Dakar Rally since 2020?|Saudi Arabia|Morocco|Argentina|Senegal',
-    'Which event was the first-ever WRC round, in January 1973?|Monte Carlo Rally|Rally Sweden|Safari Rally|RAC Rally']},
+    'Which event was the first-ever WRC round, in January 1973?|Monte Carlo Rally|Rally Sweden|Safari Rally|RAC Rally',
+    'Which two drivers share the record of nine WRC titles?|Sébastien Loeb & Sébastien Ogier|Sébastien Loeb & Juha Kankkunen|Sébastien Ogier & Tommi Mäkinen|Carlos Sainz & Colin McRae']},
   MotoGP: {code:'GP', title:'MotoGP', series: 'MotoGP',
   t2:[
     'Which rider is nicknamed "The Doctor"?|Valentino Rossi|Marc Márquez|Casey Stoner|Jorge Lorenzo',
@@ -173,7 +174,7 @@ export const CATS: Record<string, Category> = {
     'What does Jesse drive in The Fast and the Furious (2001)?|Volkswagen Jetta|Honda Civic|Mazda RX-7|Mitsubishi Eclipse',
     'What car does Starsky drive in Starsky & Hutch?|Ford Gran Torino|Chevrolet Camaro|Dodge Charger|Pontiac GTO',
     'Which racing number does Herbie wear?|53|7|99|42',
-    'What kind of truck is Optimus Prime in the Transformers films?|Peterbilt|Mack|Kenworth|Scania',
+    'What kind of truck is Optimus Prime in the 2007 Transformers film?|Peterbilt|Mack|Kenworth|Scania',
     'Which Lamborghini does Jordan Belfort drive in The Wolf of Wall Street?|Countach|Diablo|Miura|Murciélago',
     'Which year does Marty travel to in Back to the Future Part II?|2015|2020|2010|2025'],
   t3:[
@@ -226,7 +227,7 @@ export const CATS: Record<string, Category> = {
     'What does the name "Mitsubishi" mean?|Three diamonds|Three stars|Rising sun|Iron horse',
     'The serpent on the Alfa Romeo badge comes from which family\'s coat of arms?|Visconti|Medici|Sforza|Borgia',
     'The Volvo logo is the ancient symbol for which metal?|Iron|Copper|Silver|Tin',
-    'According to Toyota, what do the three ovals in its logo spell?|Every letter of TOYOTA|The founder\'s initials|A steering wheel|A rising sun']},
+    'Which brand\'s logo is a stylised "L" inside an oval?|Lexus|Lancia|Lotus|Lincoln']},
   Tech: {code:'TECH', title:'How cars work',
   t1:[
     'What does ABS stand for?|Anti-lock braking system|Automatic brake support|Advanced balance system|Air bag safety',
@@ -252,7 +253,7 @@ export const CATS: Record<string, Category> = {
     'What does DOHC stand for?|Double overhead camshaft|Dual oil heat control|Direct overhead combustion|Double output high compression',
     'What is regenerative braking?|Turning braking energy into electricity|Braking with the engine only|Using the handbrake|Cooling the brakes with water',
     'What does a limited-slip differential do?|Sends power to the wheel with more grip|Limits top speed|Stops the car rolling back|Locks the steering',
-    'Who patented the diesel engine in 1892?|Rudolf Diesel|Gottlieb Daimler|Nikolaus Otto|Felix Wankel',
+    'Which engineer gave his name to the diesel engine?|Rudolf Diesel|Gottlieb Daimler|Nikolaus Otto|Felix Wankel',
     'What makes a dual-clutch gearbox shift so fast?|It pre-selects the next gear|It has two clutch pedals|It skips gears|It only has three gears',
     'Which cycle do most petrol engines use?|Four-stroke (Otto) cycle|Two-stroke cycle|Wankel cycle|Brayton cycle',
     'What is an engine\'s compression ratio?|Cylinder volume with the piston down vs up|Fuel vs air|Power vs weight|Speed vs revs']},
@@ -582,7 +583,7 @@ export const CATS: Record<string, Category> = {
   t3:[
     'How was the Tata Nano marketed?|The world\'s cheapest car|The smallest EV|The fastest Indian car|The first Indian SUV',
     'In which city did AvtoVAZ build the Lada?|Tolyatti|Moscow|Saint Petersburg|Nizhny Novgorod',
-    'In which year did GM retire the Holden brand?|2021|2017|2015|2019',
+    'In which year did GM announce the end of the Holden brand?|2020|2017|2015|2018',
     'Škoda began (as Laurin & Klement) by making what?|Bicycles|Tanks|Trams|Shoes',
     'From whom did Tata Motors buy Jaguar Land Rover in 2008?|Ford|BMW|General Motors|British Leyland',
     'In which country was the Yugo built?|Yugoslavia|Poland|Czechoslovakia|Hungary',
