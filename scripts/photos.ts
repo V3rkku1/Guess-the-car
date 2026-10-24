@@ -46,6 +46,11 @@ for (const [n, t] of toSearch.entries()) {
   await sleep(300);
 }
 
+// Models that redirect to a sibling (Golf GTI -> Golf, SEAT Mii -> VW Up!) share its photo; keep it for the
+// first title only so a picture question never shows two options with the same photo.
+const used = new Set<string>();
+for (const t of titles) { const v = out[t]; if (v && used.has(v)) out[t] = null; else if (v) used.add(v); }
+
 const found = Object.values(out).filter(Boolean).length;
 mkdirSync('public', {recursive: true}); // git does not keep the empty folder
 writeFileSync('public/photos.json', JSON.stringify(out)); // npm runs scripts from the project root
