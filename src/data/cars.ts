@@ -8,6 +8,7 @@ export interface Category {
   brands?: string[];
   pick?: string[];
   series?: string;
+  t1?: string[]; // easy trivia, only for trivia-only categories (no brands/pick/series)
   t2: string[];
   t3: string[];
 }
@@ -95,6 +96,73 @@ export const CATS: Record<string, Category> = {
     'How many Porsche 918 Spyders were built?|918|500|1,000|99',
     'What is the name of the LaFerrari\'s hybrid system?|HY-KERS|e-Boost|E-Hybrid|KERS-X',
     'Which F1 designer co-developed the Aston Martin Valkyrie?|Adrian Newey|Gordon Murray|Rory Byrne|Patrick Head']},
+  Electric: {code:'EV', title:'Electric cars', pick:['Tesla','Rivian','Lucid','Fisker','NIO','XPeng','Li Auto','Zeekr','BYD','Xiaomi','Leapmotor','Rimac','VinFast','Togg',
+    'Nissan:Leaf,Ariya,Sakura,e-NV200','BMW:i3,i4,i5,i7,iX,iX1,iX2,iX3','Mercedes-Benz:EQA,EQB,EQC,EQE,EQE SUV,EQS,EQS SUV,EQV,EQT','Audi:e-tron,e-tron GT,Q4 e-tron',
+    'Volkswagen:ID.3,ID.4,ID. Buzz','Porsche:Taycan','Hyundai:Ioniq 5,Ioniq 6,Nexo','Kia:EV3,EV6,EV9','Genesis:GV60','Renault:Zoe,Twizy','Citroën:C-Zero,Ami',
+    'Mitsubishi:i-MiEV','Chevrolet:Bolt','Cadillac:Lyriq,Celestiq','Ford:Mustang Mach-E','Smart:#1,#3','Lotus:Evija,Eletre,Emeya','Volvo:EX30,EX90,C40','Jaguar:I-Pace',
+    'Mini:Aceman','Lexus:RZ','Toyota:bZ4X,bZ3','Wuling:Hongguang Mini EV','Alpine:A290,A390','Cupra:Born,Tavascan','Škoda:Enyaq,Elroq','Dacia:Spring','MG:Cyberster,Marvel R'],
+  t2:[
+    'What does "EV" stand for?|Electric vehicle|Energy vehicle|Electronic velocity|Efficient vehicle',
+    'Which was the world\'s best-selling car of any kind in 2023?|Tesla Model Y|Toyota Corolla|Toyota RAV4|Nissan Leaf',
+    'Which Nissan was one of the first mass-market electric cars, in 2010?|Leaf|Micra|Note|Juke',
+    'What is Tesla\'s own fast-charging network called?|Supercharger|Ionity|ChargePoint|Electrify America',
+    'Which Tesla came first, in 2008?|Roadster|Model S|Model X|Model 3'],
+  t3:[
+    'Who founded Rivian?|RJ Scaringe|Peter Rawlinson|Henrik Fisker|JB Straubel',
+    'Which car was the first electric car to win European Car of the Year, in 2011?|Nissan Leaf|Renault Zoe|Tesla Model S|BMW i3',
+    'What was Lucid Motors called before 2016?|Atieva|Faraday|Karma|Byton',
+    'Which electric car did General Motors lease in the 1990s and later crush?|EV1|Volt|Bolt|Spark EV',
+    'In which year did the Tesla Model S go on sale?|2012|2008|2015|2010',
+    'Which company sold the most plug-in cars in the world in 2023?|BYD|Tesla|Volkswagen|SAIC']},
+  Offroad: {code:'4X4', title:'Off-road & 4x4', pick:['Jeep','Land Rover','Hummer','GMC','Ram','UAZ','Great Wall','Haval',
+    'Toyota:Land Cruiser,Land Cruiser Prado,FJ Cruiser,4Runner,Hilux,Hilux Surf,Fortuner,Sequoia,Tacoma,Tundra,Mega Cruiser',
+    'Nissan:Patrol,Pathfinder,Terrano,Terrano II,Xterra,Navara,Frontier,Titan,Armada','Mitsubishi:Pajero,Montero,Shogun,L200,Triton,Delica',
+    'Suzuki:Jimny,Samurai,Vitara,Grand Vitara,Sidekick,X-90','Mercedes-Benz:G-Class,G 63 AMG 6x6,Unimog,X-Class',
+    'Ford:Bronco,Ranger,F-150,F-250,Explorer,Expedition,Excursion,Maverick','Chevrolet:Blazer,Tahoe,Suburban,Silverado,Colorado,Avalanche,S-10',
+    'Isuzu:D-Max,Trooper,MU-X,Rodeo,VehiCROSS,Bighorn','Lada:Niva','Mahindra:Scorpio,Thar,Bolero','Tata:Safari,Sumo','Subaru:Forester,Outback,Crosstrek',
+    'Daihatsu:Rocky,Feroza,Terios','SsangYong:Korando,Rexton,Musso','Lamborghini:LM002','Volkswagen:Touareg,Amarok','Rivian:R1T,R1S'],
+  t2:[
+    'What does "4x4" mean on a car?|Four-wheel drive|Four seats and four doors|Four gears|A four-cylinder engine',
+    'Which military vehicle was the Hummer H1 based on?|Humvee|Willys MB|Land Rover Wolf|Unimog',
+    'Which Suzuki is famous as a tiny but tough off-roader?|Jimny|Swift|Alto|Baleno',
+    'Top Gear famously failed to destroy which pickup truck?|Toyota Hilux|Ford Ranger|Nissan Navara|Isuzu D-Max',
+    'Which Mercedes-Benz off-roader has been built since 1979?|G-Class|ML|GL|X-Class'],
+  t3:[
+    'Which company built the WWII jeep alongside Willys-Overland?|Ford|Dodge|Chevrolet|GMC',
+    'Since which year has the Lada Niva been built?|1977|1965|1985|1991',
+    'How many times has the Mitsubishi Pajero won the Dakar Rally?|12|5|8|3',
+    'In which year did the Land Rover 90 and 110 get the name "Defender"?|1990|1983|1948|1997',
+    'Which Toyota off-roader dates back to 1951?|Land Cruiser|Hilux|4Runner|FJ Cruiser',
+    'Which British maker built the Range Rover from 1970?|Rover|Austin|Triumph|Jaguar']},
+  Movies: {code:'FILM', title:'Movie & TV cars',
+  t1:[
+    'Which car became a time machine in Back to the Future?|DeLorean DMC-12|Ford Mustang|Chevrolet Corvette|Pontiac Firebird',
+    'What car was KITT in the original Knight Rider?|Pontiac Firebird Trans Am|Chevrolet Camaro|Ford Mustang|Dodge Charger',
+    'What kind of car is Herbie, the Love Bug?|Volkswagen Beetle|Fiat 500|Mini|Renault 4',
+    'Which car is Bumblebee in the 2007 Transformers film?|Chevrolet Camaro|Volkswagen Beetle|Ford Mustang|Dodge Challenger',
+    'Which car does Dom Toretto drive in The Fast and the Furious (2001)?|Dodge Charger|Ford Mustang|Chevrolet Chevelle|Plymouth Road Runner',
+    'Which make of car does Mr. Bean drive?|Mini|Fiat|Reliant|Citroën',
+    'Which cars did the gang use in The Italian Job (1969)?|Mini Coopers|Fiat 500s|Volkswagen Beetles|Renault 5s',
+    'Which car is the General Lee in The Dukes of Hazzard?|Dodge Charger|Ford Torino|Chevrolet Chevelle|Plymouth Fury',
+    'In Goldfinger (1964), what does James Bond drive?|Aston Martin DB5|Jaguar E-Type|Lotus Esprit|Bentley Continental'],
+  t2:[
+    'Which car does Brian drive in the final race of The Fast and the Furious (2001)?|Toyota Supra|Nissan Skyline GT-R|Mitsubishi Eclipse|Honda NSX',
+    'Which car is "Eleanor" in Gone in 60 Seconds (2000)?|Ford Mustang|Chevrolet Camaro|Dodge Charger|Pontiac GTO',
+    'Which car does Steve McQueen drive in Bullitt (1968)?|Ford Mustang GT|Dodge Charger|Chevrolet Camaro|Pontiac Firebird',
+    'What kind of car is Christine in the Stephen King film?|Plymouth Fury|Dodge Dart|Chevrolet Bel Air|Ford Fairlane',
+    'Which Ferrari is borrowed in Ferris Bueller\'s Day Off?|250 GT California|Testarossa|308 GTS|Dino 246',
+    'What car does Ryan Gosling\'s driver use in Drive (2011)?|Chevrolet Chevelle Malibu|Ford Mustang|Dodge Challenger|Pontiac GTO',
+    'In The Spy Who Loved Me (1977), Bond\'s Lotus Esprit turns into what?|A submarine|A plane|A hovercraft|A tank',
+    'Which car was the Ecto-1 in Ghostbusters (1984)?|Cadillac ambulance|Lincoln limousine|Chevrolet Impala wagon|Ford station wagon'],
+  t3:[
+    'What year is Walt Kowalski\'s Ford in Gran Torino (2008)?|1972|1968|1979|1965',
+    'Which car is driven across the desert in Vanishing Point (1971)?|Dodge Challenger|Ford Mustang|Plymouth Barracuda|Chevrolet Camaro',
+    'Which race car does Steve McQueen drive in Le Mans (1971)?|Porsche 917|Ferrari 512|Ford GT40|Matra MS670',
+    'What is the Griswolds\' car called in National Lampoon\'s Vacation?|Wagon Queen Family Truckster|Ford Country Squire|Griswold Cruiser|Chevy Caprice Classic',
+    'What van did The A-Team drive?|GMC Vandura|Ford Econoline|Chevrolet Express|Dodge Ram Van',
+    'Which Aston Martin does Daniel Craig drive in Casino Royale (2006), besides the DB5?|DBS|DB9|Vanquish|V8 Vantage',
+    'Which Ferrari does Thomas Magnum drive in Magnum, P.I.?|308 GTS|Testarossa|Daytona|F40',
+    'Which car was Reasonably Priced Car when Top Gear relaunched in 2002?|Suzuki Liana|Kia Cee\'d|Chevrolet Lacetti|Vauxhall Astra']},
   German: {code:'DE', country:'Germany', brands:[
     'Volkswagen:Golf,Golf GTI,Passat,Polo,Tiguan,Touareg,Beetle,Scirocco,Arteon,ID.3,ID.4,ID. Buzz,Up!,Jetta,Corrado,Phaeton,Lupo,Fox,Sharan,Touran,T-Roc,T-Cross,Taigo,Amarok,Caddy,Transporter,Bora,Vento,Karmann Ghia,Type 2,Thing,Eos,CC,Teramont,Taos,Santana,Derby',
     'BMW:3/15 Dixi,303,315,319,326,327,335,501,502,503,507,Isetta,1600,1800,2000,1602,2002,2002 Turbo,New Class,2800,3.0 CS,3.0 CSL,M1,1 Series,1M,2 Series,2 Series Active Tourer,2 Series Gran Coupé,3 Series,3 Series Compact,3 Series Gran Turismo,4 Series,4 Series Gran Coupé,5 Series,5 Series Gran Turismo,6 Series,6 Series Gran Turismo,7 Series,8 Series,M2,M3,M3 CSL,M3 GTR,M4,M4 CSL,M5,M6,M8,M Coupé,M Roadster,X1,X2,X3,X3 M,X4,X4 M,X5,X5 M,X6,X6 M,X7,XM,Z1,Z3,Z4,Z8,i3,i4,i5,i7,i8,iX,iX1,iX2,iX3',

@@ -238,7 +238,7 @@ function show(id: 'menu' | 'play') {
   $('best').textContent = played ? `Best win ${euro(best)} · ${played} games played` : '';
   const keys = Object.keys(CATS);
   const groups: [string, string[]][] = [
-    ['Mixed', ['All', 'Sports']],
+    ['Mixed', ['All', ...keys.filter(k => !CATS[k].brands && !CATS[k].series)]],
     ['By country', keys.filter(k => CATS[k].brands)],
     ['Motorsport', keys.filter(k => CATS[k].series)],
   ];

@@ -24,6 +24,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Look up every car/driver photo once so players skip the Wikipedia lookup. If Wikipedia is
+      # unreachable the site still deploys and the game falls back to live lookups.
+      - name: Build photo cache
+        run: npm run photos
+        continue-on-error: true
+        timeout-minutes: 30
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:

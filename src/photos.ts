@@ -1,17 +1,24 @@
-// Lead photo of a Wikipedia article, already loaded into the browser cache; undefined if none,
-// offline or slow. Exact title first, then a title search. Cached per title.
-const API = 'https://en.wikipedia.org/w/api.php?action=query&origin=*&format=json&formatversion=2&redirects=1&prop=pageimages|pageprops&piprop=thumbnail&pithumbsize=330&ppprop=disambiguation&';
-const cache = new Map<string, Promise<string | undefined>>();
+import { API, bestHit, searchParams, shouldSearch, unpack, usable, type Page } from './photoRules';
 
-interface Page { title: string; missing?: boolean; index?: number; thumbnail?: { source: string }; pageprops?: object }
+// Photo for a Wikipedia title, already loaded into the browser cache; undefined if none, offline or slow.
+// public/photos.json (built at deploy) answers most titles without asking Wikipedia; others are looked up live.
+const cache = new Map<string, Promise<string | undefined>>();
+const manifest: Promise<Record<string, string | null>> = fetch('./photos.json').then(r => r.ok ? r.json() : {}).catch(() => ({}));
 
 export function photo(title: string) {
   if (!cache.has(title)) {
-    const p = fetchPhoto(title);
+    const p = resolve(title);
     cache.set(title, p);
     p.then(src => { if (!src) cache.delete(title); }); // a miss may be a timeout: allow a later retry
   }
   return cache.get(title)!;
+}
+
+async function resolve(title: string): Promise<string | undefined> {
+  const known = (await manifest)[title];
+  if (known === null) return undefined; // checked at build time: no usable photo
+  const src = known ? unpack(known) : await lookup(title);
+  return src && await loads(src) ? src : undefined;
 }
 
 async function pages(params: string): Promise<Page[]> {
@@ -19,26 +26,11 @@ async function pages(params: string): Promise<Page[]> {
   return (await r.json()).query?.pages ?? [];
 }
 
-// A search hit only counts if it is more than a bare brand, names the same brand/first name and one
-// title contains the other ("BMW 3/15" for "BMW 3/15 Dixi"), so a search never swaps in a different car.
-const base = (s: string) => s.replace(/\(.*?\)/g, '').trim().toLowerCase();
-const matches = (query: string, found: string) => {
-  const q = base(query), f = base(found);
-  return f.includes(' ') && f.startsWith(q.split(' ')[0]) && (q.includes(f) || f.includes(q));
-};
-// Brand pages lead with a logo, not a car: skip SVGs and files named "logo".
-const usable = (p: Page) => !!p.thumbnail && !p.pageprops && !/\.svg\/|logo/i.test(p.thumbnail.source);
-
-async function fetchPhoto(title: string): Promise<string | undefined> {
+async function lookup(title: string): Promise<string | undefined> {
   try {
     const [page] = await pages('titles=' + encodeURIComponent(title));
-    let src = page && usable(page) ? page.thumbnail!.source : undefined;
-    // Search only for titles with no article; a "may refer to" page means the name is ambiguous.
-    if ((!page || 'missing' in page) && !title.includes('(')) {
-      const hits = (await pages('generator=search&gsrlimit=3&gsrsearch=' + encodeURIComponent(title))).sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
-      src = hits.find(p => usable(p) && matches(title, p.title))?.thumbnail?.source;
-    }
-    return src && await loads(src) ? src : undefined;
+    if (shouldSearch(title, page)) return bestHit(title, await pages(searchParams(title)));
+    return page && usable(page) ? page.thumbnail!.source : undefined;
   } catch {
     return undefined;
   }
