@@ -1,6 +1,6 @@
 import './style.css';
 import { CATS } from './data/cars';
-import { label, questionPool, subtitle, title, type Difficulty, type Question } from './questions';
+import { questionPool, subtitle, title, type Difficulty, type Question } from './questions';
 import { photo, wikiUrl } from './photos';
 import { SFX } from './sound';
 import { OPT, STATS, load, save, type Options } from './storage';
@@ -34,7 +34,7 @@ const safeAmount = () => { const i = [...SAFE].reverse().find(i => i < S.level);
 function start(cat: string) {
   S = {cat, level: 0, used: new Set(), life: {l50: true, laud: true, lphone: true}, cur: null, sel: null, busy: false, time: 0};
   (['l50', 'laud', 'lphone'] as const).forEach(id => $(id).classList.remove('used'));
-  $('sub').textContent = label(cat);
+  $('sub').textContent = title(cat);
   show('play');
   lock(true);
   next().then(() => lock(false));
@@ -73,12 +73,13 @@ async function next() {
   q.opts.forEach((o, i) => {
     const b = document.createElement('button');
     b.className = 'ans';
-    b.innerHTML = `<b>${'ABCD'[i]}:</b>`;
-    b.append(o);
+    b.innerHTML = `<b>${'ABCD'[i]}</b>`;
+    b.append(Object.assign(document.createElement('span'), {textContent: o}));
     b.onclick = () => pick(b);
     $('answers').append(b);
   });
-  $('status').textContent = `Question ${S.level + 1} of 15 — playing for ${euro(PRIZES[S.level])}`;
+  $('qlabel').innerHTML = `Question ${S.level + 1} of 15 &nbsp;·&nbsp; <b>${euro(PRIZES[S.level])}</b>`;
+  $('status').textContent = '';
   $('prog').style.width = S.level / 15 * 100 + '%';
   renderLadder();
   startTimer();
@@ -102,7 +103,7 @@ function startTimer() {
     if (S.time > 0) { if (S.time <= 5) SFX.tick(); return; }
     clearInterval(tick);
     S.busy = true; lock(true); reveal(); SFX.bad();
-    setTimeout(() => end(false, safeAmount(), `⏱️ Time's up! The answer was <b>${cur().a}</b>.` + learn()), 1500);
+    setTimeout(() => end(false, safeAmount(), `Time's up. The answer was <b>${cur().a}</b>.` + learn()), 1500);
   }, 1000);
 }
 
@@ -115,7 +116,7 @@ const lock = (on: boolean) => {
 const reveal = () => buttons().forEach(b => { if (text(b) === cur().a) b.classList.add('ok'); });
 const learn = () => {
   const t = cur().pic ?? cur().img;
-  return t ? `<p><a href="${wikiUrl(t)}" target="_blank" rel="noopener">📖 Read about the ${t} on Wikipedia</a></p>` : '';
+  return t ? `<p><a href="${wikiUrl(t)}" target="_blank" rel="noopener">Read about the ${t} on Wikipedia →</a></p>` : '';
 };
 
 function pick(btn: HTMLButtonElement) {
@@ -123,7 +124,7 @@ function pick(btn: HTMLButtonElement) {
   if (OPT.confirm && S.sel !== btn) {
     buttons().forEach(b => b.classList.remove('sel'));
     btn.classList.add('sel'); S.sel = btn; SFX.sel();
-    $('status').textContent = 'Final answer? Click it again or press Enter.';
+    $('status').textContent = 'Final answer? Click it again or press Enter to lock it in.';
     return;
   }
   answer(btn);
@@ -164,13 +165,13 @@ function end(won: boolean, amount: number, msg: string) {
   s.played++; s.best = Math.max(s.best, amount); if (won) s.wins++;
   save('carStats', STATS);
   if (won) { SFX.win(); $('prog').style.width = '100%'; }
-  dialog(won ? '🏆 MILLIONAIRE!' : amount ? '💰 Game over' : '💥 Game over',
-    `<p>${msg}</p><p>You leave with <b style="color:var(--gold)">${euro(amount)}</b>.</p>`,
-    [['again', '🔁 Play again'], ['menu', '🏠 Menu']], '<button type="button" class="big alt" id="share">📤 Share</button>');
+  dialog(won ? 'Millionaire!' : 'Game over',
+    `<p>${msg}</p><p>You leave with <span class="money">${euro(amount)}</span></p>`,
+    [['again', 'Play again'], ['menu', 'Categories']], '<button type="button" class="big alt" id="share">Share</button>');
   $('share').onclick = () => {
-    const msg = `I won ${euro(amount)} on Who Wants to Be a Car Millionaire? (${label(S.cat)}) 🚗`;
+    const msg = `I won ${euro(amount)} on Guess the Car (${title(S.cat)}). Can you beat it?`;
     if (navigator.share) navigator.share({text: msg, url: location.href}).catch(() => {});
-    else navigator.clipboard?.writeText(`${msg} ${location.href}`).then(() => { $('share').textContent = '✅ Copied'; }, () => {});
+    else navigator.clipboard?.writeText(`${msg} ${location.href}`).then(() => { $('share').textContent = 'Link copied'; }, () => {});
   };
   dlg.onclose = () => dlg.returnValue === 'again' ? start(S.cat) : show('menu');
 }
@@ -193,7 +194,7 @@ $('laud').onclick = () => {
   const w = cur().opts.map(o => gone.includes(o) ? 0 : (o === cur().a && Math.random() < accuracy ? 40 + rnd(40) : 5 + rnd(30)));
   const sum = w.reduce((a, b) => a + b, 0);
   const pct = w.map(x => Math.round(x / sum * 100));
-  dialog('📊 Ask the audience', `<div class="bars">${pct.map((p, i) => `<div class="bar"><span>${p}%</span><i style="height:${p}%"></i><b>${'ABCD'[i]}</b></div>`).join('')}</div>`);
+  dialog('Ask the audience', `<div class="bars">${pct.map((p, i) => `<div class="bar"><span>${p}%</span><i style="height:${p}%"></i><b>${'ABCD'[i]}</b></div>`).join('')}</div>`);
 };
 
 $('lphone').onclick = () => {
@@ -202,15 +203,15 @@ $('lphone').onclick = () => {
   const knows = Math.random() < 0.95 - S.level * 0.045;
   const guess = knows ? cur().a : left[rnd(left.length)];
   const letter = 'ABCD'[cur().opts.indexOf(guess)];
-  const line = knows && S.level < 10 ? `Easy one — it's <b>${letter}: ${guess}</b>. I'm sure.`
-    : knows ? `Hmm… I think it's <b>${letter}: ${guess}</b>. Pretty sure.`
-    : `No idea, honestly. Maybe <b>${letter}: ${guess}</b>? Don't trust me.`;
-  dialog('📞 Phone a friend', `<p>Your friend the expert says:</p><p>“${line}”</p>`);
+  const line = knows && S.level < 10 ? `Oh, I know this one. It's <b>${letter}, ${guess}</b>. Definitely.`
+    : knows ? `I think it's <b>${letter}, ${guess}</b>. Pretty sure, but don't quote me.`
+    : `Honestly, no idea. If I had to guess, <b>${letter}, ${guess}</b>? Sorry.`;
+  dialog('Phone a friend', `<p>“${line}”</p>`);
 };
 
 $('walk').onclick = () => {
   const amount = S.level ? PRIZES[S.level - 1] : 0;
-  dialog('🚶 Walk away?', `<p>Leave now with <b style="color:var(--gold)">${euro(amount)}</b>?</p>`, [['no', 'Keep playing'], ['yes', 'Take the money']]);
+  dialog('Walk away?', `<p>Stop here and keep <span class="money">${euro(amount)}</span>?</p>`, [['no', 'Keep playing'], ['yes', 'Take the money']]);
   dlg.onclose = () => { if (dlg.returnValue === 'yes') end(false, amount, `You walked away. The answer was <b>${cur().a}</b>.` + learn()); };
 };
 
@@ -230,16 +231,24 @@ function show(id: 'menu' | 'play') {
   clearInterval(tick);
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
   if (id !== 'menu') return;
-  $('sub').textContent = 'Pick a category. 15 questions. 3 lifelines. €1,000,000.';
+  $('sub').textContent = 'A millionaire-style quiz for car people';
   const all = Object.values(STATS);
   const best = Math.max(load('carBest', 0), ...all.map(s => s.best));
   const played = all.reduce((n, s) => n + s.played, 0);
-  $('best').textContent = played ? `🏆 Best win ${euro(best)} · ${played} games played` : '';
-  $('cats').innerHTML = ['All', ...Object.keys(CATS)].map(k => {
+  $('best').textContent = played ? `Best win ${euro(best)} · ${played} games played` : '';
+  const keys = Object.keys(CATS);
+  const groups: [string, string[]][] = [
+    ['Mixed', ['All', 'Sports']],
+    ['By country', keys.filter(k => CATS[k].brands)],
+    ['Motorsport', keys.filter(k => CATS[k].series)],
+  ];
+  const tile = (k: string) => {
     const s = STATS[k];
-    return `<button class="cat" data-cat="${k}"><span class="f">${k === 'All' ? '🌍' : CATS[k].flag}</span><strong>${title(k)}</strong><small>${subtitle(k)}</small>${
-      s ? `<small class="best">🏆 ${euro(s.best)} best · ${s.played} played${s.wins ? ` · ${s.wins}× millionaire` : ''}</small>` : ''}</button>`;
-  }).join('');
+    return `<button class="cat${CATS[k]?.series ? ' series' : ''}" data-cat="${k}"><span class="code">${k === 'All' ? 'ALL' : CATS[k].code}</span>`
+      + `<span class="name">${title(k)}</span><span class="meta">${subtitle(k)}</span>`
+      + (s ? `<span class="score">Best ${euro(s.best)} · ${s.played} played${s.wins ? ` · won ${s.wins}×` : ''}</span>` : '') + '</button>';
+  };
+  $('cats').innerHTML = groups.map(([name, ks]) => `<h3 class="group">${name}</h3><div class="tiles">${ks.map(tile).join('')}</div>`).join('');
 }
 $('cats').onclick = e => { const b = (e.target as Element).closest<HTMLElement>('.cat'); if (b) start(b.dataset.cat!); };
 show('menu');
