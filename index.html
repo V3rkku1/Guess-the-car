@@ -4,80 +4,121 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Who Wants to Be a Car Millionaire?</title>
-<!-- Single file, no framework/build/images: native <dialog>, CSS clip-path, plain JS. -->
+<!-- Single file, no framework/build/images: native <dialog>, CSS clip-path, WebAudio beeps, plain JS. -->
 <style>
-:root{--bg1:#000428;--bg2:#004e92;--gold:#ffb800;--line:#9fb4ff;--ok:#1db954;--bad:#e53935;--sel:#ff8c00;--text:#fff}
+:root{--gold:#ffc53d;--gold2:#ff9f1c;--line:#7f9cff;--ok:#22c55e;--bad:#ef4444;--sel:#ff9f1c;--text:#f5f7ff;--muted:#aab6e8;--panel:#0a1240}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;font-family:system-ui,sans-serif;color:var(--text);background:radial-gradient(circle at 50% 20%,var(--bg2),var(--bg1) 70%) fixed}
-h1{text-align:center;color:var(--gold);margin:24px 16px 4px;font-size:clamp(1.4rem,4vw,2.4rem);text-shadow:0 0 12px #ffb80088}
-.sub{text-align:center;opacity:.8;margin:0 16px 24px}
-.screen{display:none;max-width:1100px;margin:0 auto;padding:0 16px 32px}
-.screen.on{display:block}
-#cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
-.cat,.ans,button.big{font:inherit;color:var(--text);cursor:pointer;border:2px solid var(--line);background:linear-gradient(#0a1a5c,#000a33)}
-.cat{padding:18px;border-radius:12px;font-size:1.1rem;text-align:left}
-.cat small{display:block;opacity:.7;font-size:.8rem;margin-top:4px}
-.cat:hover{border-color:var(--gold)}.ans:not(:disabled):hover{filter:brightness(1.4)}
-.game{display:grid;grid-template-columns:1fr 230px;gap:20px}
-.top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
-.life{font:inherit;font-size:.95rem;padding:8px 14px;border-radius:999px;border:2px solid var(--line);background:#000a33;color:var(--text);cursor:pointer}
-.life:disabled{opacity:.3;text-decoration:line-through;cursor:default}
-.top .spacer{flex:1}
-#pic{display:block;margin:0 auto 14px;max-width:100%;height:clamp(160px,30vh,280px);object-fit:contain;border-radius:12px}
-#pic[hidden]{display:none}
-.credit{font-size:.75rem;opacity:.6}
-.q{clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%);background:linear-gradient(#0a1a5c,#000a33);border:0;padding:28px 8%;text-align:center;font-size:clamp(1.05rem,2.4vw,1.4rem);min-height:110px;display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+body{margin:0;min-height:100vh;font-family:system-ui,sans-serif;color:var(--text);background:#00031a;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:-20%;z-index:-1;background:radial-gradient(40% 35% at 50% 0%,#2a5bd7aa,transparent 70%),radial-gradient(30% 30% at 15% 80%,#7b2cbf55,transparent 70%),radial-gradient(30% 30% at 85% 75%,#0096c755,transparent 70%),#00031a;animation:drift 18s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate3d(2%,3%,0) rotate(3deg)}}
+header{text-align:center;padding:20px 16px 4px}
+h1{margin:0;font-size:clamp(1.5rem,4.5vw,2.6rem);background:linear-gradient(#fff3c4,var(--gold) 45%,var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 10px #ffb80066)}
+.sub{color:var(--muted);margin:6px 0 0}
+.screen{display:none;max-width:1120px;margin:0 auto;padding:16px 16px 40px}
+.screen.on{display:block;animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.settings{display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:center;margin:0 0 18px;color:var(--muted)}
+.settings label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.settings input{accent-color:var(--gold);width:18px;height:18px}
+#cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.cat{cursor:pointer;text-align:left;padding:16px 18px;border-radius:16px;border:1px solid #ffffff22;background:linear-gradient(160deg,#16257a,var(--panel));box-shadow:0 6px 20px #0006;transition:transform .15s,border-color .15s,box-shadow .15s}
+.cat:hover{transform:translateY(-3px);border-color:var(--gold);box-shadow:0 10px 28px #0008,0 0 0 1px var(--gold)}
+.cat .f{font-size:1.8rem;display:block;margin-bottom:4px}
+.cat strong{font-size:1.1rem}
+.cat small{display:block;color:var(--muted);font-size:.8rem;margin-top:4px}
+.cat small.best{color:var(--gold)}
+.game{display:grid;grid-template-columns:1fr 240px;gap:22px;align-items:start}
+.top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.life{cursor:pointer;display:inline-flex;gap:6px;align-items:center;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);transition:background .15s}
+.life:hover:not(:disabled){background:#1a2a8a}
+.life:disabled{opacity:.35;cursor:default}
+.life.used{text-decoration:line-through}
+.spacer{flex:1}
+.timer{min-width:3.2em;text-align:center;font-weight:700;font-variant-numeric:tabular-nums;padding:6px 10px;border-radius:999px;border:2px solid var(--gold)}
+.timer.low{border-color:var(--bad);color:var(--bad);animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.1)}}
+.prog{height:6px;border-radius:3px;background:#ffffff1a;margin-bottom:14px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold2),var(--gold));transition:width .5s}
+.photo{height:clamp(170px,32vh,300px);margin-bottom:14px;border-radius:16px;overflow:hidden;background:var(--panel);box-shadow:0 6px 20px #0006}
+.photo[hidden]{display:none}
+.photo.loading{background:linear-gradient(100deg,var(--panel) 30%,#1a2a8a 50%,var(--panel) 70%);background-size:300% 100%;animation:shimmer 1.2s linear infinite}
+.photo.loading img{visibility:hidden}
+@keyframes shimmer{to{background-position:-150% 0}}
+#pic{width:100%;height:100%;object-fit:contain;display:block}
+.stage{filter:drop-shadow(0 0 1px var(--line)) drop-shadow(0 4px 12px #0008)}
+.q{clip-path:polygon(4% 0,96% 0,100% 50%,96% 100%,4% 100%,0 50%);background:linear-gradient(#1b2c8f,#070f3d);padding:26px 9%;text-align:center;font-size:clamp(1.05rem,2.4vw,1.45rem);font-weight:600;min-height:100px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
 .answers{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.ans{clip-path:polygon(5% 0,95% 0,100% 50%,95% 100%,5% 100%,0 50%);padding:16px 8%;text-align:left;font-size:1.05rem;min-height:58px;border:0;background:linear-gradient(#1a2f8a,#000a33)}
+.ans{cursor:pointer;clip-path:polygon(5% 0,95% 0,100% 50%,95% 100%,5% 100%,0 50%);padding:15px 8%;text-align:left;font-size:1.05rem;min-height:56px;border:0;background:linear-gradient(#1b2c8f,#070f3d);transition:filter .15s}
 .ans b{color:var(--gold);margin-right:8px}
+.ans:hover:not(:disabled),.ans:focus-visible{filter:brightness(1.4);outline:none}
 .ans:disabled{cursor:default}
 .ans.hide{visibility:hidden}
-.ans.sel{background:var(--sel);color:#000}
-.ans.ok{background:var(--ok);animation:blink .3s 4}
-.ans.bad{background:var(--bad)}
-@keyframes blink{50%{filter:brightness(1.6)}}
-.ladder{list-style:none;margin:0;padding:8px;border:2px solid var(--line);border-radius:12px;background:#000a33cc;display:flex;flex-direction:column-reverse;font-variant-numeric:tabular-nums}
-.ladder li{padding:4px 10px;border-radius:6px;display:flex;justify-content:space-between;color:var(--gold)}
+.ans.sel{background:linear-gradient(#ffc078,var(--sel));color:#000}
+.ans.ok{background:linear-gradient(#4ade80,var(--ok));color:#000;animation:blink .3s 4}
+.ans.bad{background:linear-gradient(#f87171,var(--bad))}
+.ans.sel b,.ans.ok b,.ans.bad b{color:inherit}
+@keyframes blink{50%{filter:brightness(1.5)}}
+.ladder{list-style:none;margin:0;padding:8px;border:1px solid #ffffff22;border-radius:16px;background:#0a1240cc;display:flex;flex-direction:column-reverse;font-variant-numeric:tabular-nums;position:sticky;top:12px;box-shadow:0 6px 20px #0006}
+.ladder li{padding:4px 10px;border-radius:8px;display:flex;justify-content:space-between;color:var(--gold);transition:background .3s}
 .ladder li.safe{color:#fff;font-weight:700}
-.ladder li.cur{background:var(--sel);color:#000}
-.ladder li.done{opacity:.5}
-.meta{opacity:.8;font-size:.9rem;margin-top:14px;text-align:center}
-dialog{background:linear-gradient(#0a1a5c,#000a33);color:var(--text);border:2px solid var(--gold);border-radius:16px;max-width:min(460px,calc(100vw - 32px));padding:24px}
-dialog::backdrop{background:#000a}
+.ladder li.cur{background:linear-gradient(90deg,var(--gold2),var(--gold));color:#000;font-weight:700}
+.ladder li.done{opacity:.45}
+.meta{color:var(--muted);font-size:.9rem;margin-top:14px;text-align:center}
+.credit{font-size:.75rem;opacity:.7}
+dialog{background:linear-gradient(160deg,#16257a,#070f3d);color:var(--text);border:1px solid var(--gold);border-radius:20px;max-width:min(460px,calc(100vw - 32px));padding:24px;box-shadow:0 20px 60px #000c}
+dialog[open]{animation:in .25s ease}
+dialog::backdrop{background:#000b;backdrop-filter:blur(3px)}
 dialog h2{margin-top:0;color:var(--gold)}
+dialog a{color:var(--gold)}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.big{cursor:pointer;padding:10px 20px;border-radius:999px;border:0;font-weight:700;background:linear-gradient(var(--gold),var(--gold2));color:#000}
+.big.alt{background:transparent;border:1px solid var(--line);color:var(--text);font-weight:400}
 .bars{display:flex;gap:14px;align-items:flex-end;height:160px;margin:12px 0}
 .bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%}
-.bar i{display:block;width:100%;background:var(--gold);border-radius:4px 4px 0 0}
-button.big{padding:10px 22px;border-radius:999px;margin-top:12px;font-size:1rem}
-@media (max-width:760px){.game{grid-template-columns:1fr}.ladder{display:none}.answers{grid-template-columns:1fr}}
+.bar i{display:block;width:100%;background:linear-gradient(var(--gold),var(--gold2));border-radius:4px 4px 0 0}
+@media (max-width:760px){.game{grid-template-columns:1fr}.ladder{display:none}.answers{grid-template-columns:1fr}.photo{height:auto;aspect-ratio:16/10}.q{min-height:80px;padding:18px 9%}}
+@media (max-width:480px){.life .lbl{display:none}}
+@media (prefers-reduced-motion:reduce){*,body::before{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<h1>Who Wants to Be a Car Millionaire?</h1>
-<p class="sub" id="sub">Pick a category. 15 questions. 3 lifelines. €1,000,000.</p>
+<header><h1>🚗 Who Wants to Be a Car Millionaire?</h1><p class="sub" id="sub"></p></header>
 
-<section class="screen on" id="menu"><div id="cats"></div><p class="meta" id="best"></p><p class="meta credit">Car photos load from Wikipedia / Wikimedia Commons (CC BY-SA).</p></section>
+<section class="screen on" id="menu">
+  <div class="settings">
+    <label><input type="checkbox" id="optSound"> 🔊 Sound</label>
+    <label><input type="checkbox" id="optConfirm"> ✋ Ask "Final answer?"</label>
+    <label><input type="checkbox" id="optTimer"> ⏱️ 30 s timer</label>
+  </div>
+  <div id="cats"></div>
+  <p class="meta" id="best"></p>
+  <p class="meta">Keys: A–D or 1–4 answer · Enter confirm · F 50:50 · H audience · P phone · W walk away</p>
+  <p class="meta credit">Car photos load from Wikipedia / Wikimedia Commons (CC BY-SA).</p>
+</section>
 
 <section class="screen" id="play">
   <div class="game">
     <div>
       <div class="top">
-        <button class="life" id="l50">50:50</button>
-        <button class="life" id="laud">📊 Ask the audience</button>
-        <button class="life" id="lphone">📞 Phone a friend</button>
+        <button class="life" id="l50" title="50:50 (F)">✂️ <span class="lbl">50:50</span></button>
+        <button class="life" id="laud" title="Ask the audience (H)">📊 <span class="lbl">Audience</span></button>
+        <button class="life" id="lphone" title="Phone a friend (P)">📞 <span class="lbl">Phone</span></button>
         <span class="spacer"></span>
-        <button class="life" id="walk">🚶 Walk away</button>
+        <span class="timer" id="timer" hidden></span>
+        <button class="life" id="walk" title="Walk away (W)">🚶 <span class="lbl">Walk away</span></button>
       </div>
-      <img id="pic" alt="Mystery car" hidden>
-      <div class="q" id="q"></div>
-      <div class="answers" id="answers"></div>
+      <div class="prog"><i id="prog"></i></div>
+      <div class="photo" id="photo" hidden><img id="pic" alt="Mystery car"></div>
+      <div class="stage"><div class="q" id="q"></div><div class="answers" id="answers"></div></div>
       <p class="meta" id="status"></p>
     </div>
     <ol class="ladder" id="ladder"></ol>
   </div>
 </section>
 
-<dialog id="dlg"><h2 id="dt"></h2><div id="db"></div><form method="dialog"><button class="big" id="dbtn">OK</button></form></dialog>
+<dialog id="dlg"><h2 id="dt"></h2><div id="db"></div><form method="dialog" class="row" id="dbtns"></form></dialog>
 
 <script>
 // Data: "Brand:model,model,..." per category; trivia "question|correct|wrong|wrong|wrong".
@@ -435,11 +476,47 @@ function questionPool(cat, d) {
   return t;
 }
 
-let S;
+const load = (k, d) => { try { return JSON.parse(localStorage[k]) ?? d; } catch { return d; } };
+const save = (k, v) => { try { localStorage[k] = JSON.stringify(v); } catch {} };
+const OPT = {sound: true, confirm: false, timer: false, ...load('carOpts', {})};
+const STATS = load('carStats', {}); // {category: {best, played, wins}}
+for (const k of ['sound', 'confirm', 'timer']) {
+  const el = $('opt' + k[0].toUpperCase() + k.slice(1));
+  el.checked = OPT[k];
+  el.onchange = () => { OPT[k] = el.checked; save('carOpts', OPT); };
+}
+
+// Tiny WebAudio synth instead of shipping sound files.
+let ac;
+function beep(notes, type = 'sine') {
+  if (!OPT.sound) return;
+  try {
+    ac ??= new AudioContext();
+    for (const [f, t, d = .15] of notes) {
+      const o = ac.createOscillator(), g = ac.createGain(), at = ac.currentTime + t;
+      o.type = type; o.frequency.value = f;
+      g.gain.setValueAtTime(.15, at); g.gain.exponentialRampToValueAtTime(.001, at + d);
+      o.connect(g).connect(ac.destination); o.start(at); o.stop(at + d);
+    }
+  } catch {}
+}
+const SFX = {
+  sel: () => beep([[440, 0, .25]], 'triangle'),
+  ok: () => beep([[523, 0], [659, .12], [784, .24, .4]]),
+  bad: () => beep([[196, 0, .5], [147, .25, .6]], 'sawtooth'),
+  tick: () => beep([[880, 0, .05]], 'square'),
+  life: () => beep([[660, 0, .1], [990, .1, .15]]),
+  win: () => beep([[523, 0], [659, .15], [784, .3], [1047, .45, .8]])
+};
+
+const label = cat => cat === 'All' ? '🌍 All cars' : `${CATS[cat].flag} ${cat} cars`;
+const safeAmount = () => { const i = [...SAFE].reverse().find(i => i < S.level); return i === undefined ? 0 : PRIZES[i]; };
+
+let S, tick;
 function start(cat) {
-  S = {cat, level: 0, used: new Set(), life: {l50: 1, laud: 1, lphone: 1}, cur: null, busy: false};
-  ['l50', 'laud', 'lphone', 'walk'].forEach(id => $(id).disabled = false);
-  $('sub').textContent = `${cat === 'All' ? '🌍 All cars' : CATS[cat].flag + ' ' + cat + ' cars'}`;
+  S = {cat, level: 0, used: new Set(), life: {l50: 1, laud: 1, lphone: 1}, cur: null, sel: null, busy: false};
+  ['l50', 'laud', 'lphone'].forEach(id => $(id).classList.remove('used'));
+  $('sub').textContent = label(cat);
   show('play');
   lock(true);
   next().then(() => lock(false));
@@ -456,13 +533,22 @@ async function fetchPhoto(title) {
   } catch {}
 }
 
+// true = shimmer placeholder, string = show photo, falsy = hide.
+function setPhoto(src) {
+  $('photo').hidden = !src;
+  $('photo').classList.toggle('loading', !!src);
+  if (typeof src === 'string') $('pic').src = src;
+}
+$('pic').onload = () => $('photo').classList.remove('loading');
+$('pic').onerror = () => setPhoto(false);
+
 async function next() {
   const d = S.level < 5 ? 1 : S.level < 10 ? 2 : 3;
   const key = x => x.q + '|' + x.a;
   // Fall back to easier pools if a hard pool runs dry.
   let pool = [];
   for (let k = d; k >= 1 && !pool.length; k--) pool = questionPool(S.cat, k).filter(x => !S.used.has(key(x)));
-  $('q').textContent = 'Loading…'; $('answers').innerHTML = ''; $('pic').hidden = true;
+  $('q').textContent = 'Loading…'; $('answers').innerHTML = ''; setPhoto(true);
   let q, src;
   for (let tries = 0; tries < 4; tries++) { // picture questions need a photo; else try another
     q = pool[rnd(pool.length)];
@@ -472,23 +558,23 @@ async function next() {
   S.used.add(key(q));
   q.opts = shuffle(q.opts);
   console.assert(new Set(q.opts).size === 4 && q.opts.includes(q.a), 'bad question', q);
-  S.cur = q; S.busy = false;
-  const pic = $('pic');
-  pic.onerror = () => pic.hidden = true;
-  if (src) { pic.src = src; pic.hidden = false; }
-  else if (q.img) photo(q.img).then(s => { if (s && S.cur === q) { pic.src = s; pic.hidden = false; } });
+  S.cur = q; S.busy = false; S.sel = null;
+  if (src) setPhoto(src);
+  else if (q.img) photo(q.img).then(s => { if (S.cur === q) setPhoto(s); });
+  else setPhoto(false);
   $('q').textContent = q.q;
-  $('answers').innerHTML = '';
   q.opts.forEach((o, i) => {
     const b = document.createElement('button');
     b.className = 'ans';
     b.innerHTML = `<b>${'ABCD'[i]}:</b>`;
     b.append(o);
-    b.onclick = () => answer(b, o);
+    b.onclick = () => pick(b);
     $('answers').append(b);
   });
   $('status').textContent = `Question ${S.level + 1} of 15 — playing for ${euro(PRIZES[S.level])}`;
+  $('prog').style.width = S.level / 15 * 100 + '%';
   renderLadder();
+  startTimer();
 }
 
 function renderLadder() {
@@ -496,23 +582,53 @@ function renderLadder() {
     `<li class="${SAFE.includes(i) ? 'safe' : ''} ${i === S.level ? 'cur' : ''} ${i < S.level ? 'done' : ''}"><span>${i + 1}</span><span>${euro(p)}</span></li>`).join('');
 }
 
+function startTimer() {
+  clearInterval(tick);
+  $('timer').hidden = !OPT.timer;
+  if (!OPT.timer) return;
+  S.time = 30;
+  const draw = () => { $('timer').textContent = S.time; $('timer').classList.toggle('low', S.time <= 5); };
+  draw();
+  tick = setInterval(() => {
+    if (S.busy || $('dlg').open) return; // paused during reveals and lifeline dialogs
+    S.time--; draw();
+    if (S.time > 0) return S.time <= 5 && SFX.tick();
+    clearInterval(tick);
+    S.busy = true; lock(true); reveal(); SFX.bad();
+    setTimeout(() => end(false, safeAmount(), `⏱️ Time's up! The answer was <b>${S.cur.a}</b>.` + learn()), 1500);
+  }, 1000);
+}
+
 const buttons = () => [...$('answers').children];
 const lock = on => { buttons().forEach(b => b.disabled = on); ['l50', 'laud', 'lphone', 'walk'].forEach(id => $(id).disabled = on || (id !== 'walk' && !S.life[id])); };
+const reveal = () => buttons().forEach(b => b.lastChild.textContent === S.cur.a && b.classList.add('ok'));
+const learn = () => { const t = S.cur.pic || S.cur.img; return t ? `<p><a href="https://en.wikipedia.org/wiki/${encodeURIComponent(t.replace(/ /g, '_'))}" target="_blank" rel="noopener">📖 Read about the ${t} on Wikipedia</a></p>` : ''; };
 
-function answer(btn, opt) {
+function pick(btn) {
+  if (S.busy || btn.disabled) return;
+  if (OPT.confirm && S.sel !== btn) {
+    buttons().forEach(b => b.classList.remove('sel'));
+    btn.classList.add('sel'); S.sel = btn; SFX.sel();
+    $('status').textContent = 'Final answer? Click it again or press Enter.';
+    return;
+  }
+  answer(btn);
+}
+
+function answer(btn) {
   if (S.busy) return;
-  S.busy = true;
+  S.busy = true; S.sel = null;
+  clearInterval(tick);
   lock(true);
-  btn.classList.add('sel');
+  btn.classList.add('sel'); SFX.sel();
+  $('status').textContent = 'Locked in…';
   setTimeout(() => {
-    const right = opt === S.cur.a;
-    buttons().forEach(b => { if (b.lastChild.textContent === S.cur.a) b.classList.add('ok'); });
+    const right = btn.lastChild.textContent === S.cur.a;
+    reveal();
     if (!right) btn.classList.add('bad');
+    right ? SFX.ok() : SFX.bad();
     setTimeout(() => {
-      if (!right) {
-        const safe = [...SAFE].reverse().find(i => i < S.level);
-        return end(false, safe === undefined ? 0 : PRIZES[safe], `The correct answer was <b>${S.cur.a}</b>.`);
-      }
+      if (!right) return end(false, safeAmount(), `The correct answer was <b>${S.cur.a}</b>.` + learn());
       if (S.level === 14) return end(true, PRIZES[14], 'You answered all 15 questions!');
       S.level++;
       next().then(() => lock(false));
@@ -520,26 +636,46 @@ function answer(btn, opt) {
   }, 1500);
 }
 
-function dialog(title, html, btn = 'OK') {
-  $('dt').textContent = title; $('db').innerHTML = html; $('dbtn').textContent = btn;
-  $('dlg').showModal();
+// buttons: [[returnValue, text], ...]; first is the primary action.
+function dialog(title, html, btns = [['ok', 'OK']], extra = '') {
+  const d = $('dlg');
+  d.onclose = null; d.returnValue = '';
+  $('dt').textContent = title; $('db').innerHTML = html;
+  $('dbtns').innerHTML = btns.map(([v, t], i) => `<button class="big${i ? ' alt' : ''}" value="${v}">${t}</button>`).join('') + extra;
+  d.showModal();
 }
 
 function end(won, amount, msg) {
-  saveBest(amount);
-  dialog(won ? '🏆 MILLIONAIRE!' : amount ? '💰 Game over' : '💥 Game over', `<p>${msg}</p><p>You leave with <b style="color:var(--gold)">${euro(amount)}</b>.</p>`, 'Back to categories');
-  $('dlg').onclose = () => { $('dlg').onclose = null; show('menu'); };
+  clearInterval(tick);
+  const s = STATS[S.cat] ??= {best: 0, played: 0, wins: 0};
+  s.played++; s.best = Math.max(s.best, amount); if (won) s.wins++;
+  save('carStats', STATS);
+  if (won) SFX.win();
+  if (won) $('prog').style.width = '100%';
+  dialog(won ? '🏆 MILLIONAIRE!' : amount ? '💰 Game over' : '💥 Game over',
+    `<p>${msg}</p><p>You leave with <b style="color:var(--gold)">${euro(amount)}</b>.</p>`,
+    [['again', '🔁 Play again'], ['menu', '🏠 Menu']], '<button type="button" class="big alt" id="share">📤 Share</button>');
+  $('share').onclick = () => {
+    const text = `I won ${euro(amount)} on Who Wants to Be a Car Millionaire? (${label(S.cat)}) 🚗`;
+    if (navigator.share) navigator.share({text, url: location.href}).catch(() => {});
+    else navigator.clipboard?.writeText(`${text} ${location.href}`).then(() => $('share').textContent = '✅ Copied', () => {});
+  };
+  $('dlg').onclose = () => $('dlg').returnValue === 'again' ? start(S.cat) : show('menu');
 }
 
 function hidden() { return buttons().filter(b => b.classList.contains('hide')).map(b => b.lastChild.textContent); }
+const useLife = id => { S.life[id] = 0; $(id).disabled = true; $(id).classList.add('used'); SFX.life(); };
 
 $('l50').onclick = () => {
-  S.life.l50 = 0; $('l50').disabled = true;
-  shuffle(buttons().filter(b => b.lastChild.textContent !== S.cur.a)).slice(0, 2).forEach(b => { b.classList.add('hide'); b.disabled = true; });
+  useLife('l50');
+  shuffle(buttons().filter(b => b.lastChild.textContent !== S.cur.a)).slice(0, 2).forEach(b => {
+    b.classList.add('hide'); b.disabled = true;
+    if (S.sel === b) { b.classList.remove('sel'); S.sel = null; }
+  });
 };
 
 $('laud').onclick = () => {
-  S.life.laud = 0; $('laud').disabled = true;
+  useLife('laud');
   const gone = hidden();
   const accuracy = 0.95 - S.level * 0.04; // audience gets less sure as questions get harder
   const w = S.cur.opts.map(o => gone.includes(o) ? 0 : (o === S.cur.a && Math.random() < accuracy ? 40 + rnd(40) : 5 + rnd(30)));
@@ -549,7 +685,7 @@ $('laud').onclick = () => {
 };
 
 $('lphone').onclick = () => {
-  S.life.lphone = 0; $('lphone').disabled = true;
+  useLife('lphone');
   const left = S.cur.opts.filter(o => !hidden().includes(o));
   const knows = Math.random() < 0.95 - S.level * 0.045;
   const guess = knows ? S.cur.a : left[rnd(left.length)];
@@ -560,18 +696,39 @@ $('lphone').onclick = () => {
   dialog('📞 Phone a friend', `<p>Your friend the car nerd says:</p><p>“${line}”</p>`);
 };
 
-$('walk').onclick = () => end(false, S.level ? PRIZES[S.level - 1] : 0, 'You walked away.');
+$('walk').onclick = () => {
+  const amount = S.level ? PRIZES[S.level - 1] : 0;
+  dialog('🚶 Walk away?', `<p>Leave now with <b style="color:var(--gold)">${euro(amount)}</b>?</p>`, [['no', 'Keep playing'], ['yes', 'Take the money']]);
+  $('dlg').onclose = () => $('dlg').returnValue === 'yes' && end(false, amount, `You walked away. The answer was <b>${S.cur.a}</b>.` + learn());
+};
 
-function saveBest(n) { try { if (n > (+localStorage.carBest || 0)) localStorage.carBest = n; } catch {} }
-function showBest() { let b = 0; try { b = +localStorage.carBest || 0; } catch {} $('best').textContent = b ? `Best win: ${euro(b)}` : ''; }
+document.onkeydown = e => {
+  if ($('dlg').open || !$('play').classList.contains('on') || e.ctrlKey || e.metaKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  const i = k.length === 1 ? Math.max('abcd'.indexOf(k), '1234'.indexOf(k)) : -1;
+  const life = {f: 'l50', h: 'laud', p: 'lphone', w: 'walk'}[k];
+  if (i >= 0 && buttons()[i]) pick(buttons()[i]);
+  else if (k === 'enter' && S.sel) answer(S.sel);
+  else if (life && !$(life).disabled) $(life).click();
+  else return;
+  e.preventDefault();
+};
 
 function show(id) {
+  clearInterval(tick);
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
-  if (id === 'menu') { $('sub').textContent = 'Pick a category. 15 questions. 3 lifelines. €1,000,000.'; showBest(); }
+  if (id !== 'menu') return;
+  $('sub').textContent = 'Pick a category. 15 questions. 3 lifelines. €1,000,000.';
+  const all = Object.values(STATS);
+  const best = Math.max(load('carBest', 0), ...all.map(s => s.best));
+  const played = all.reduce((n, s) => n + s.played, 0);
+  $('best').textContent = played ? `🏆 Best win ${euro(best)} · ${played} games played` : '';
+  const count = bs => bs.reduce((n, b) => n + b.models.length, 0);
+  $('cats').innerHTML = [['All', '🌍', `${BRANDS.length} brands · ${count(BRANDS)} models, mixed`]]
+    .concat(Object.entries(CATS).map(([k, c]) => [k, c.flag, `${c.brands.length} brands · ${count(BRANDS.filter(b => b.cat === k))} models`]))
+    .map(([k, f, s]) => `<button class="cat" data-cat="${k}"><span class="f">${f}</span><strong>${k === 'All' ? 'All cars' : k + ' cars'}</strong><small>${s}</small>${
+      STATS[k] ? `<small class="best">🏆 ${euro(STATS[k].best)} best · ${STATS[k].played} played${STATS[k].wins ? ` · ${STATS[k].wins}× millionaire` : ''}</small>` : ''}</button>`).join('');
 }
-
-$('cats').innerHTML = [['All', '🌍', `${BRANDS.length} brands · ${BRANDS.reduce((n, b) => n + b.models.length, 0)} models, mixed`]].concat(Object.entries(CATS).map(([k, c]) => [k, c.flag, `${c.brands.length} brands · ${BRANDS.filter(b => b.cat === k).reduce((n, b) => n + b.models.length, 0)} models`]))
-  .map(([k, f, s]) => `<button class="cat" data-cat="${k}">${f} ${k === 'All' ? 'All cars' : k + ' cars'}<small>${s}</small></button>`).join('');
 $('cats').onclick = e => { const b = e.target.closest('.cat'); if (b) start(b.dataset.cat); };
 show('menu');
 </script>
