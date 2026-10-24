@@ -1,4 +1,5 @@
 import { CATS } from './data/cars';
+import { IMPORTED } from './data/imported';
 import { SERIES } from './data/series';
 import { rnd, shuffle } from './util';
 
@@ -12,14 +13,30 @@ export interface Question {
 export interface Brand { brand: string; country: string; cat: string; models: string[] }
 export type Difficulty = 1 | 2 | 3;
 
-const RAW_BRANDS: Brand[] = Object.entries(CATS).flatMap(([cat, c]) => (c.brands ?? []).map(s => {
+const CURATED: Brand[] = Object.entries(CATS).flatMap(([cat, c]) => (c.brands ?? []).map(s => {
   const i = s.indexOf(':'), [brand, country = c.country!] = s.slice(0, i).split('/');
   return {brand, country, cat, models: s.slice(i + 1).split(',')};
 }));
+
+// The imported list adds models to known brands and adds new brands. An imported name never knocks out a
+// hand-picked one: it is skipped if any curated model has that name, or if it names another brand
+// ("Maybach S-class" under Mercedes-Benz would make the brand question ambiguous).
+const curatedNames = new Set(CURATED.flatMap(b => b.models.map(m => m.toLowerCase())));
+const allBrands = [...new Set([...CURATED.map(b => b.brand), ...Object.keys(IMPORTED)])];
+const brandWords = new RegExp(`\\b(${allBrands.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'gi');
+const namesOtherBrand = (m: string, own: string) => [...m.matchAll(brandWords)].some(x => x[0].toLowerCase() !== own.toLowerCase());
+const RAW_BRANDS = CURATED;
+for (const [brand, x] of Object.entries(IMPORTED)) {
+  const extra = x.models.split(',').filter(m => !curatedNames.has(m.toLowerCase()) && !namesOtherBrand(m, brand));
+  const known = RAW_BRANDS.find(b => b.brand === brand);
+  if (known) known.models.push(...extra);
+  else if (x.cat) RAW_BRANDS.push({brand, cat: x.cat, country: x.country ?? CATS[x.cat].country!, models: extra});
+}
 // Drop model names used by 2+ brands so every question has exactly one right answer.
 const seen = new Map<string, number>();
 RAW_BRANDS.forEach(b => b.models.forEach(m => seen.set(m.toLowerCase(), (seen.get(m.toLowerCase()) ?? 0) + 1)));
-export const BRANDS: Brand[] = RAW_BRANDS.map(b => ({...b, models: b.models.filter(m => seen.get(m.toLowerCase()) === 1)}));
+export const BRANDS: Brand[] = RAW_BRANDS.map(b => ({...b, models: [...new Set(b.models)].filter(m => seen.get(m.toLowerCase()) === 1)}))
+  .filter(b => b.models.length);
 const COUNTRIES = [...new Set(BRANDS.map(b => b.country))];
 
 // "Brand" = all its models, "Brand:a,b" = only those, "Brand:-a,b" = all except those.
@@ -79,9 +96,14 @@ export function questionPool(cat: string, d: Difficulty): Question[] {
   if (triviaOnly(cat)) return triviaOf([cat], d);
   const cats = cat === 'All' ? Object.keys(CATS).filter(k => !CATS[k].series && !triviaOnly(k)) : [cat];
   const brands = brandsOf(cat);
-  const others = (b: Brand) => { // distractor brands: same pool first, padded from all brands
-    const same = shuffle(brands.filter(x => x.brand !== b.brand));
-    return [...same, ...shuffle(BRANDS.filter(x => !same.includes(x) && x.brand !== b.brand))].slice(0, 3);
+  const others = (b: Brand): Brand[] => { // distractor brands: same pool first, padded from all brands
+    if (brands.length < 4) {
+      const same = shuffle(brands.filter(x => x.brand !== b.brand));
+      return [...same, ...shuffle(BRANDS.filter(x => !same.includes(x) && x.brand !== b.brand))].slice(0, 3);
+    }
+    const out: Brand[] = []; // random picks, not a full shuffle: this runs once per question in a pool of thousands
+    while (out.length < 3) { const x = brands[rnd(brands.length)]; if (x.brand !== b.brand && !out.includes(x)) out.push(x); }
+    return out;
   };
   const anyModel = (b: Brand) => b.models[rnd(b.models.length)];
   if (d === 1) {
