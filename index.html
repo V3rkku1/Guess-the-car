@@ -122,7 +122,136 @@ dialog a{color:var(--gold)}
 
 <script>
 // Data: "Brand:model,model,..." per category; trivia "question|correct|wrong|wrong|wrong".
+// Formula 1 drivers' champions: "year|driver|team".
+const F1 = `1950|Giuseppe Farina|Alfa Romeo
+1951|Juan Manuel Fangio|Alfa Romeo
+1952|Alberto Ascari|Ferrari
+1953|Alberto Ascari|Ferrari
+1954|Juan Manuel Fangio|Maserati & Mercedes
+1955|Juan Manuel Fangio|Mercedes
+1956|Juan Manuel Fangio|Ferrari
+1957|Juan Manuel Fangio|Maserati
+1958|Mike Hawthorn|Ferrari
+1959|Jack Brabham|Cooper
+1960|Jack Brabham|Cooper
+1961|Phil Hill|Ferrari
+1962|Graham Hill|BRM
+1963|Jim Clark|Lotus
+1964|John Surtees|Ferrari
+1965|Jim Clark|Lotus
+1966|Jack Brabham|Brabham
+1967|Denny Hulme|Brabham
+1968|Graham Hill|Lotus
+1969|Jackie Stewart|Matra
+1970|Jochen Rindt|Lotus
+1971|Jackie Stewart|Tyrrell
+1972|Emerson Fittipaldi|Lotus
+1973|Jackie Stewart|Tyrrell
+1974|Emerson Fittipaldi|McLaren
+1975|Niki Lauda|Ferrari
+1976|James Hunt|McLaren
+1977|Niki Lauda|Ferrari
+1978|Mario Andretti|Lotus
+1979|Jody Scheckter|Ferrari
+1980|Alan Jones|Williams
+1981|Nelson Piquet|Brabham
+1982|Keke Rosberg|Williams
+1983|Nelson Piquet|Brabham
+1984|Niki Lauda|McLaren
+1985|Alain Prost|McLaren
+1986|Alain Prost|McLaren
+1987|Nelson Piquet|Williams
+1988|Ayrton Senna|McLaren
+1989|Alain Prost|McLaren
+1990|Ayrton Senna|McLaren
+1991|Ayrton Senna|McLaren
+1992|Nigel Mansell|Williams
+1993|Alain Prost|Williams
+1994|Michael Schumacher|Benetton
+1995|Michael Schumacher|Benetton
+1996|Damon Hill|Williams
+1997|Jacques Villeneuve|Williams
+1998|Mika Häkkinen|McLaren
+1999|Mika Häkkinen|McLaren
+2000|Michael Schumacher|Ferrari
+2001|Michael Schumacher|Ferrari
+2002|Michael Schumacher|Ferrari
+2003|Michael Schumacher|Ferrari
+2004|Michael Schumacher|Ferrari
+2005|Fernando Alonso|Renault
+2006|Fernando Alonso|Renault
+2007|Kimi Räikkönen|Ferrari
+2008|Lewis Hamilton|McLaren
+2009|Jenson Button|Brawn
+2010|Sebastian Vettel|Red Bull
+2011|Sebastian Vettel|Red Bull
+2012|Sebastian Vettel|Red Bull
+2013|Sebastian Vettel|Red Bull
+2014|Lewis Hamilton|Mercedes
+2015|Lewis Hamilton|Mercedes
+2016|Nico Rosberg|Mercedes
+2017|Lewis Hamilton|Mercedes
+2018|Lewis Hamilton|Mercedes
+2019|Lewis Hamilton|Mercedes
+2020|Lewis Hamilton|Mercedes
+2021|Max Verstappen|Red Bull
+2022|Max Verstappen|Red Bull
+2023|Max Verstappen|Red Bull
+2024|Max Verstappen|Red Bull
+2025|Lando Norris|McLaren`.split('\n').map(l => { const [y, driver, team] = l.split('|'); return {y: +y, driver, team}; });
+const WIKI = {'Giuseppe Farina': 'Nino Farina', 'Alan Jones': 'Alan Jones (racing driver)'}; // Wikipedia titles that differ from the name
+
+// Generated F1 questions; recent seasons are easy, the 1950s-60s hard.
+function f1Pool(d) {
+  const era = y => y >= 1990 ? 1 : y >= 1970 ? 2 : 3;
+  const harder = y => Math.min(3, era(y) + 1);
+  const drivers = [...new Set(F1.map(c => c.driver))], teams = [...new Set(F1.map(c => c.team))];
+  const near = (y, not) => { // distractors: champions from around the same era first
+    const n = shuffle([...new Set(F1.filter(c => Math.abs(c.y - y) <= 12).map(c => c.driver))].filter(x => x !== not));
+    return [...n, ...shuffle(drivers.filter(x => x !== not && !n.includes(x)))].slice(0, 3);
+  };
+  const qs = [];
+  for (const c of F1) {
+    if (era(c.y) === d) qs.push({q: `Who won the ${c.y} Formula 1 World Championship?`, a: c.driver, opts: [c.driver, ...near(c.y, c.driver)]});
+    if (harder(c.y) === d) qs.push({q: `With which team did ${c.driver} win the ${c.y} title?`, a: c.team, opts: [c.team, ...shuffle(teams.filter(t => t !== c.team)).slice(0, 3)]});
+  }
+  for (const name of drivers) {
+    const years = F1.filter(c => c.driver === name).map(c => c.y), y = years[0], wiki = WIKI[name] || name;
+    if (era(y) === d) qs.push({q: 'Who is this?', a: name, opts: [name, ...near(y, name)], pic: wiki});
+    if (harder(y) === d) {
+      const wrong = shuffle([...Array(17)].map((_, i) => y - 8 + i).filter(x => x >= 1950 && x <= F1.at(-1).y && !years.includes(x))).slice(0, 3);
+      qs.push({q: years.length > 1 ? `In which year did ${name} win their first world title?` : `In which year did ${name} become World Champion?`,
+        a: String(y), opts: [y, ...wrong].map(String), img: wiki});
+    }
+    if (years.length > 1 && harder(y) === d) {
+      const n = years.length, wrong = shuffle([1, 2, 3, 4, 5, 6, 7].filter(x => x !== n)).slice(0, 3);
+      qs.push({q: `How many world titles did ${name} win?`, a: String(n), opts: [n, ...wrong].map(String), img: wiki});
+    }
+  }
+  return d > 1 ? [...qs, ...CATS['Formula 1']['t' + d].map(s => trivia(s, d))] : qs;
+}
+
 const CATS = {
+  'Formula 1': {flag:'🏁', title:'Formula 1', sub:`${new Set(F1.map(c => c.driver)).size} world champions · 1950–${F1.at(-1).y}`, gen: f1Pool,
+  t2:[
+    'Which team has won the most Constructors\' Championships?|Ferrari|McLaren|Williams|Mercedes',
+    'Which two drivers share the record of seven world titles?|Lewis Hamilton & Michael Schumacher|Lewis Hamilton & Max Verstappen|Michael Schumacher & Juan Manuel Fangio|Ayrton Senna & Alain Prost',
+    'In which year was the first Formula 1 World Championship?|1950|1946|1955|1960',
+    'What does DRS stand for?|Drag Reduction System|Downforce Release Switch|Dynamic Racing Speed|Drive Ratio Selector',
+    'At which circuit is the Italian Grand Prix usually held?|Monza|Imola|Mugello|Misano',
+    'What does the chequered flag mean?|End of the race|Danger ahead|Pit lane closed|Safety car out',
+    'Which Grand Prix is raced through the streets of Monte Carlo?|Monaco Grand Prix|French Grand Prix|Italian Grand Prix|Belgian Grand Prix'],
+  t3:[
+    'Who is the youngest Formula 1 World Champion?|Sebastian Vettel|Lewis Hamilton|Max Verstappen|Fernando Alonso',
+    'Which driver won the world title after his death?|Jochen Rindt|Gilles Villeneuve|Ayrton Senna|Ronnie Peterson',
+    'Who won the first World Championship race, the 1950 British Grand Prix?|Giuseppe Farina|Juan Manuel Fangio|Luigi Fagioli|Reg Parnell',
+    'Which driver has the most Grand Prix wins?|Lewis Hamilton|Michael Schumacher|Max Verstappen|Sebastian Vettel',
+    'Which team won both titles in its only season, 2009?|Brawn GP|Toyota|Honda|Super Aguri',
+    'Who won 19 races in a single season, in 2023?|Max Verstappen|Lewis Hamilton|Sebastian Vettel|Michael Schumacher',
+    'Who is the only driver to win the title in a car carrying his own name?|Jack Brabham|Bruce McLaren|John Surtees|Emerson Fittipaldi',
+    'At which circuit did Niki Lauda survive a fiery crash in 1976?|Nürburgring|Monza|Spa-Francorchamps|Silverstone',
+    'Which Japanese circuit has a figure-of-eight layout?|Suzuka|Fuji|Motegi|Okayama',
+    'Which city hosted Formula 1\'s first night race, in 2008?|Singapore|Bahrain|Abu Dhabi|Kuala Lumpur']},
   // Cross-country category: reuses brands listed under their home country via "pick".
   Sports: {flag:'🏎️', pick:['Ferrari','Lamborghini','Porsche','McLaren','Bugatti','Pagani','Koenigsegg','Aston Martin','Lotus','Maserati','Alpine','Rimac','De Tomaso','TVR','Noble','Ariel','Caterham','Saleen','Shelby','Spyker','Morgan'],
   t2:[
@@ -471,7 +600,8 @@ console.assert(brandsOf('Sports').length === CATS.Sports.pick.length, 'unknown S
 const trivia = (s, d) => { const [q, ...o] = s.split('|'); return {q, a: o[0], opts: o, d}; };
 
 function questionPool(cat, d) {
-  const cats = cat === 'All' ? Object.keys(CATS) : [cat];
+  if (CATS[cat]?.gen) return CATS[cat].gen(d);
+  const cats = cat === 'All' ? Object.keys(CATS).filter(k => !CATS[k].gen) : [cat];
   const brands = brandsOf(cat);
   const others = b => { // distractor brands: same pool first, padded from all brands
     const same = shuffle(brands.filter(x => x.brand !== b.brand));
@@ -529,7 +659,8 @@ const SFX = {
   win: () => beep([[523, 0], [659, .15], [784, .3], [1047, .45, .8]])
 };
 
-const label = cat => cat === 'All' ? '🌍 All cars' : `${CATS[cat].flag} ${cat} cars`;
+const title = cat => cat === 'All' ? 'All cars' : CATS[cat].title || cat + ' cars';
+const label = cat => `${cat === 'All' ? '🌍' : CATS[cat].flag} ${title(cat)}`;
 const safeAmount = () => { const i = [...SAFE].reverse().find(i => i < S.level); return i === undefined ? 0 : PRIZES[i]; };
 
 let S, tick;
@@ -745,8 +876,8 @@ function show(id) {
   $('best').textContent = played ? `🏆 Best win ${euro(best)} · ${played} games played` : '';
   const count = bs => bs.reduce((n, b) => n + b.models.length, 0);
   $('cats').innerHTML = [['All', '🌍', `${BRANDS.length} brands · ${count(BRANDS)} models, mixed`]]
-    .concat(Object.entries(CATS).map(([k, c]) => [k, c.flag, `${brandsOf(k).length} brands · ${count(brandsOf(k))} models`]))
-    .map(([k, f, s]) => `<button class="cat" data-cat="${k}"><span class="f">${f}</span><strong>${k === 'All' ? 'All cars' : k + ' cars'}</strong><small>${s}</small>${
+    .concat(Object.entries(CATS).map(([k, c]) => [k, c.flag, c.sub || `${brandsOf(k).length} brands · ${count(brandsOf(k))} models`]))
+    .map(([k, f, s]) => `<button class="cat" data-cat="${k}"><span class="f">${f}</span><strong>${title(k)}</strong><small>${s}</small>${
       STATS[k] ? `<small class="best">🏆 ${euro(STATS[k].best)} best · ${STATS[k].played} played${STATS[k].wins ? ` · ${STATS[k].wins}× millionaire` : ''}</small>` : ''}</button>`).join('');
 }
 $('cats').onclick = e => { const b = e.target.closest('.cat'); if (b) start(b.dataset.cat); };
