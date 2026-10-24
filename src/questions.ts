@@ -35,12 +35,14 @@ export const brandsOf = (cat: string): Brand[] =>
   cat === 'All' ? BRANDS : CATS[cat].pick ? CATS[cat].pick!.map(pickBrand) : BRANDS.filter(b => b.cat === cat);
 
 const trivia = (s: string): Question => { const [q, ...opts] = s.split('|'); return {q, a: opts[0], opts}; };
-const triviaOf = (cats: string[], d: 2 | 3) => cats.flatMap(c => CATS[c][d === 2 ? 't2' : 't3'].map(trivia));
+const triviaOf = (cats: string[], d: Difficulty) => cats.flatMap(c => (CATS[c][`t${d}`] ?? []).map(trivia));
+const triviaOnly = (cat: string) => cat !== 'All' && !CATS[cat].brands && !CATS[cat].pick && !CATS[cat].series;
 
 export const title = (cat: string) => cat === 'All' ? 'All cars' : CATS[cat].title ?? cat + ' cars';
 export const subtitle = (cat: string) => {
   const key = CATS[cat]?.series;
   if (key) { const l = SERIES[key].list; return `${new Set(l.map(c => c.name)).size} world champions · ${l[0].y}–${l.at(-1)!.y}`; }
+  if (triviaOnly(cat)) return `${([1, 2, 3] as const).reduce((n, d) => n + (CATS[cat][`t${d}`]?.length ?? 0), 0)} questions`;
   const bs = brandsOf(cat), models = bs.reduce((n, b) => n + b.models.length, 0);
   return `${bs.length} brands · ${models} models${cat === 'All' ? ', mixed' : ''}`;
 };
@@ -74,7 +76,8 @@ function champPool(cat: string, d: Difficulty): Question[] {
 
 export function questionPool(cat: string, d: Difficulty): Question[] {
   if (CATS[cat]?.series) return champPool(cat, d);
-  const cats = cat === 'All' ? Object.keys(CATS).filter(k => !CATS[k].series) : [cat];
+  if (triviaOnly(cat)) return triviaOf([cat], d);
+  const cats = cat === 'All' ? Object.keys(CATS).filter(k => !CATS[k].series && !triviaOnly(k)) : [cat];
   const brands = brandsOf(cat);
   const others = (b: Brand) => { // distractor brands: same pool first, padded from all brands
     const same = shuffle(brands.filter(x => x.brand !== b.brand));
@@ -96,6 +99,14 @@ export function questionPool(cat: string, d: Difficulty): Question[] {
     const qs: Question[] = [{q: `Which of these is a ${b.brand} model?`, a: m, opts: [m, ...others(b).map(anyModel)]}];
     // Harder picture round: tell apart models of the same brand.
     if (rest.length >= 3) qs.push({q: `Which ${b.brand} is this?`, a: m, opts: [m, ...rest.slice(0, 3)], pic: `${b.brand} ${m}`});
+    // Odd one out: three real models and one from another brand.
+    if (rest.length >= 3) { const odd = anyModel(others(b)[0]); qs.push({q: `Which of these is NOT a ${b.brand} model?`, a: odd, opts: [odd, m, ...rest.slice(0, 2)]}); }
     return qs;
   })];
 }
+
+// Every Wikipedia title a question can ask a photo for (used to build public/photos.json).
+export const photoTitles = () => [...new Set([
+  ...BRANDS.flatMap(b => b.models.map(m => `${b.brand} ${m}`)),
+  ...Object.values(SERIES).flatMap(s => s.list.map(c => s.wiki?.[c.name] ?? c.name)),
+])];
