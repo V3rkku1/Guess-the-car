@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Who Wants to Be a Car Millionaire?</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚗</text></svg>">
+<script type="module" src="/src/main.ts"></script>
+</head>
+<body>
+<header><h1>🚗 Who Wants to Be a Car Millionaire?</h1><p class="sub" id="sub"></p></header>
+
+<section class="screen on" id="menu">
+  <div class="settings">
+    <label><input type="checkbox" id="optSound"> 🔊 Sound</label>
+    <label><input type="checkbox" id="optConfirm"> ✋ Ask "Final answer?"</label>
+    <label><input type="checkbox" id="optTimer"> ⏱️ 30 s timer</label>
+  </div>
+  <div id="cats"></div>
+  <p class="meta" id="best"></p>
+  <p class="meta">Keys: A–D or 1–4 answer · Enter confirm · F 50:50 · H audience · P phone · W walk away</p>
+  <p class="meta credit">Car photos load from Wikipedia / Wikimedia Commons (CC BY-SA).</p>
+</section>
+
+<section class="screen" id="play">
+  <div class="game">
+    <div>
+      <div class="top">
+        <button class="life" id="l50" title="50:50 (F)">✂️ <span class="lbl">50:50</span></button>
+        <button class="life" id="laud" title="Ask the audience (H)">📊 <span class="lbl">Audience</span></button>
+        <button class="life" id="lphone" title="Phone a friend (P)">📞 <span class="lbl">Phone</span></button>
+        <span class="spacer"></span>
+        <span class="timer" id="timer" hidden></span>
+        <button class="life" id="walk" title="Walk away (W)">🚶 <span class="lbl">Walk away</span></button>
+      </div>
+      <div class="prog"><i id="prog"></i></div>
+      <div class="photo" id="photo" hidden><img id="pic" alt="Mystery car"></div>
+      <div class="stage"><div class="q" id="q"></div><div class="answers" id="answers"></div></div>
+      <p class="meta" id="status"></p>
+    </div>
+    <ol class="ladder" id="ladder"></ol>
+  </div>
+</section>
+
+<dialog id="dlg"><h2 id="dt"></h2><div id="db"></div><form method="dialog" class="row" id="dbtns"></form></dialog>
+</body>
+</html>
