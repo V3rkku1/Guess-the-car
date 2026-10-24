@@ -122,8 +122,18 @@ dialog a{color:var(--gold)}
 
 <script>
 // Data: "Brand:model,model,..." per category; trivia "question|correct|wrong|wrong|wrong".
-// Formula 1 drivers' champions: "year|driver|team".
-const F1 = `1950|Giuseppe Farina|Alfa Romeo
+// Champions per series: "year|name|team". nat = home country, wiki = Wikipedia titles that differ from the name.
+const SERIES = {
+  'Formula 1': {era: [1990, 1970], team: 'team', champ: () => 'Formula 1 World Championship',
+    wiki: {'Giuseppe Farina': 'Nino Farina', 'Alan Jones': 'Alan Jones (racing driver)'},
+    nat: {'Giuseppe Farina': 'Italy', 'Juan Manuel Fangio': 'Argentina', 'Alberto Ascari': 'Italy', 'Mike Hawthorn': 'United Kingdom', 'Jack Brabham': 'Australia',
+      'Phil Hill': 'USA', 'Graham Hill': 'United Kingdom', 'Jim Clark': 'United Kingdom', 'John Surtees': 'United Kingdom', 'Denny Hulme': 'New Zealand',
+      'Jackie Stewart': 'United Kingdom', 'Jochen Rindt': 'Austria', 'Emerson Fittipaldi': 'Brazil', 'Niki Lauda': 'Austria', 'James Hunt': 'United Kingdom',
+      'Mario Andretti': 'USA', 'Jody Scheckter': 'South Africa', 'Alan Jones': 'Australia', 'Nelson Piquet': 'Brazil', 'Keke Rosberg': 'Finland',
+      'Alain Prost': 'France', 'Ayrton Senna': 'Brazil', 'Nigel Mansell': 'United Kingdom', 'Michael Schumacher': 'Germany', 'Damon Hill': 'United Kingdom',
+      'Jacques Villeneuve': 'Canada', 'Mika Häkkinen': 'Finland', 'Fernando Alonso': 'Spain', 'Kimi Räikkönen': 'Finland', 'Lewis Hamilton': 'United Kingdom',
+      'Jenson Button': 'United Kingdom', 'Sebastian Vettel': 'Germany', 'Nico Rosberg': 'Germany', 'Max Verstappen': 'Netherlands', 'Lando Norris': 'United Kingdom'},
+    list: `1950|Giuseppe Farina|Alfa Romeo
 1951|Juan Manuel Fangio|Alfa Romeo
 1952|Alberto Ascari|Ferrari
 1953|Alberto Ascari|Ferrari
@@ -198,41 +208,178 @@ const F1 = `1950|Giuseppe Farina|Alfa Romeo
 2022|Max Verstappen|Red Bull
 2023|Max Verstappen|Red Bull
 2024|Max Verstappen|Red Bull
-2025|Lando Norris|McLaren`.split('\n').map(l => { const [y, driver, team] = l.split('|'); return {y: +y, driver, team}; });
-const WIKI = {'Giuseppe Farina': 'Nino Farina', 'Alan Jones': 'Alan Jones (racing driver)'}; // Wikipedia titles that differ from the name
+2025|Lando Norris|McLaren`},
+  Rally: {era: [2000, 1990], team: 'manufacturer', champ: () => 'World Rally Championship drivers\' title',
+    wiki: {'Carlos Sainz': 'Carlos Sainz Sr.'},
+    nat: {'Björn Waldegård': 'Sweden', 'Walter Röhrl': 'Germany', 'Ari Vatanen': 'Finland', 'Hannu Mikkola': 'Finland', 'Stig Blomqvist': 'Sweden',
+      'Timo Salonen': 'Finland', 'Juha Kankkunen': 'Finland', 'Miki Biasion': 'Italy', 'Carlos Sainz': 'Spain', 'Didier Auriol': 'France',
+      'Colin McRae': 'United Kingdom', 'Tommi Mäkinen': 'Finland', 'Marcus Grönholm': 'Finland', 'Richard Burns': 'United Kingdom', 'Petter Solberg': 'Norway',
+      'Sébastien Loeb': 'France', 'Sébastien Ogier': 'France', 'Ott Tänak': 'Estonia', 'Kalle Rovanperä': 'Finland', 'Thierry Neuville': 'Belgium'},
+    list: `1979|Björn Waldegård|Ford
+1980|Walter Röhrl|Fiat
+1981|Ari Vatanen|Ford
+1982|Walter Röhrl|Opel
+1983|Hannu Mikkola|Audi
+1984|Stig Blomqvist|Audi
+1985|Timo Salonen|Peugeot
+1986|Juha Kankkunen|Peugeot
+1987|Juha Kankkunen|Lancia
+1988|Miki Biasion|Lancia
+1989|Miki Biasion|Lancia
+1990|Carlos Sainz|Toyota
+1991|Juha Kankkunen|Lancia
+1992|Carlos Sainz|Toyota
+1993|Juha Kankkunen|Toyota
+1994|Didier Auriol|Toyota
+1995|Colin McRae|Subaru
+1996|Tommi Mäkinen|Mitsubishi
+1997|Tommi Mäkinen|Mitsubishi
+1998|Tommi Mäkinen|Mitsubishi
+1999|Tommi Mäkinen|Mitsubishi
+2000|Marcus Grönholm|Peugeot
+2001|Richard Burns|Subaru
+2002|Marcus Grönholm|Peugeot
+2003|Petter Solberg|Subaru
+2004|Sébastien Loeb|Citroën
+2005|Sébastien Loeb|Citroën
+2006|Sébastien Loeb|Citroën
+2007|Sébastien Loeb|Citroën
+2008|Sébastien Loeb|Citroën
+2009|Sébastien Loeb|Citroën
+2010|Sébastien Loeb|Citroën
+2011|Sébastien Loeb|Citroën
+2012|Sébastien Loeb|Citroën
+2013|Sébastien Ogier|Volkswagen
+2014|Sébastien Ogier|Volkswagen
+2015|Sébastien Ogier|Volkswagen
+2016|Sébastien Ogier|Volkswagen
+2017|Sébastien Ogier|Ford
+2018|Sébastien Ogier|Ford
+2019|Ott Tänak|Toyota
+2020|Sébastien Ogier|Toyota
+2021|Sébastien Ogier|Toyota
+2022|Kalle Rovanperä|Toyota
+2023|Kalle Rovanperä|Toyota
+2024|Thierry Neuville|Hyundai
+2025|Sébastien Ogier|Toyota`},
+  MotoGP: {era: [1990, 1970], team: 'manufacturer', champ: y => (y < 2002 ? '500cc' : 'MotoGP') + ' World Championship',
+    wiki: {'Les Graham': 'Les Graham (motorcycle racer)'},
+    nat: {'Les Graham': 'United Kingdom', 'Umberto Masetti': 'Italy', 'Geoff Duke': 'United Kingdom', 'John Surtees': 'United Kingdom', 'Libero Liberati': 'Italy',
+      'Gary Hocking': 'Rhodesia', 'Mike Hailwood': 'United Kingdom', 'Giacomo Agostini': 'Italy', 'Phil Read': 'United Kingdom', 'Barry Sheene': 'United Kingdom',
+      'Kenny Roberts': 'USA', 'Marco Lucchinelli': 'Italy', 'Franco Uncini': 'Italy', 'Freddie Spencer': 'USA', 'Eddie Lawson': 'USA', 'Wayne Gardner': 'Australia',
+      'Wayne Rainey': 'USA', 'Kevin Schwantz': 'USA', 'Mick Doohan': 'Australia', 'Àlex Crivillé': 'Spain', 'Kenny Roberts Jr.': 'USA', 'Valentino Rossi': 'Italy',
+      'Nicky Hayden': 'USA', 'Casey Stoner': 'Australia', 'Jorge Lorenzo': 'Spain', 'Marc Márquez': 'Spain', 'Joan Mir': 'Spain', 'Fabio Quartararo': 'France',
+      'Francesco Bagnaia': 'Italy', 'Jorge Martín': 'Spain'},
+    list: `1949|Les Graham|AJS
+1950|Umberto Masetti|Gilera
+1951|Geoff Duke|Norton
+1952|Umberto Masetti|Gilera
+1953|Geoff Duke|Gilera
+1954|Geoff Duke|Gilera
+1955|Geoff Duke|Gilera
+1956|John Surtees|MV Agusta
+1957|Libero Liberati|Gilera
+1958|John Surtees|MV Agusta
+1959|John Surtees|MV Agusta
+1960|John Surtees|MV Agusta
+1961|Gary Hocking|MV Agusta
+1962|Mike Hailwood|MV Agusta
+1963|Mike Hailwood|MV Agusta
+1964|Mike Hailwood|MV Agusta
+1965|Mike Hailwood|MV Agusta
+1966|Giacomo Agostini|MV Agusta
+1967|Giacomo Agostini|MV Agusta
+1968|Giacomo Agostini|MV Agusta
+1969|Giacomo Agostini|MV Agusta
+1970|Giacomo Agostini|MV Agusta
+1971|Giacomo Agostini|MV Agusta
+1972|Giacomo Agostini|MV Agusta
+1973|Phil Read|MV Agusta
+1974|Phil Read|MV Agusta
+1975|Giacomo Agostini|Yamaha
+1976|Barry Sheene|Suzuki
+1977|Barry Sheene|Suzuki
+1978|Kenny Roberts|Yamaha
+1979|Kenny Roberts|Yamaha
+1980|Kenny Roberts|Yamaha
+1981|Marco Lucchinelli|Suzuki
+1982|Franco Uncini|Suzuki
+1983|Freddie Spencer|Honda
+1984|Eddie Lawson|Yamaha
+1985|Freddie Spencer|Honda
+1986|Eddie Lawson|Yamaha
+1987|Wayne Gardner|Honda
+1988|Eddie Lawson|Yamaha
+1989|Eddie Lawson|Honda
+1990|Wayne Rainey|Yamaha
+1991|Wayne Rainey|Yamaha
+1992|Wayne Rainey|Yamaha
+1993|Kevin Schwantz|Suzuki
+1994|Mick Doohan|Honda
+1995|Mick Doohan|Honda
+1996|Mick Doohan|Honda
+1997|Mick Doohan|Honda
+1998|Mick Doohan|Honda
+1999|Àlex Crivillé|Honda
+2000|Kenny Roberts Jr.|Suzuki
+2001|Valentino Rossi|Honda
+2002|Valentino Rossi|Honda
+2003|Valentino Rossi|Honda
+2004|Valentino Rossi|Yamaha
+2005|Valentino Rossi|Yamaha
+2006|Nicky Hayden|Honda
+2007|Casey Stoner|Ducati
+2008|Valentino Rossi|Yamaha
+2009|Valentino Rossi|Yamaha
+2010|Jorge Lorenzo|Yamaha
+2011|Casey Stoner|Honda
+2012|Jorge Lorenzo|Yamaha
+2013|Marc Márquez|Honda
+2014|Marc Márquez|Honda
+2015|Jorge Lorenzo|Yamaha
+2016|Marc Márquez|Honda
+2017|Marc Márquez|Honda
+2018|Marc Márquez|Honda
+2019|Marc Márquez|Honda
+2020|Joan Mir|Suzuki
+2021|Fabio Quartararo|Yamaha
+2022|Francesco Bagnaia|Ducati
+2023|Francesco Bagnaia|Ducati
+2024|Jorge Martín|Ducati
+2025|Marc Márquez|Ducati`}
+};
+for (const sr of Object.values(SERIES)) sr.list = sr.list.split('\n').map(l => { const [y, name, team] = l.split('|'); return {y: +y, name, team}; });
 
-// Generated F1 questions; recent seasons are easy, the 1950s-60s hard.
-function f1Pool(d) {
-  const era = y => y >= 1990 ? 1 : y >= 1970 ? 2 : 3;
+// Generated champion questions; recent seasons are easy, the oldest hard.
+function champPool(key, d) {
+  const {list, nat, wiki = {}, era: [easy, mid], team, champ} = SERIES[key];
+  const era = y => y >= easy ? 1 : y >= mid ? 2 : 3;
   const harder = y => Math.min(3, era(y) + 1);
-  const drivers = [...new Set(F1.map(c => c.driver))], teams = [...new Set(F1.map(c => c.team))];
+  const names = [...new Set(list.map(c => c.name))], teams = [...new Set(list.map(c => c.team))], countries = [...new Set(Object.values(nat))];
   const near = (y, not) => { // distractors: champions from around the same era first
-    const n = shuffle([...new Set(F1.filter(c => Math.abs(c.y - y) <= 12).map(c => c.driver))].filter(x => x !== not));
-    return [...n, ...shuffle(drivers.filter(x => x !== not && !n.includes(x)))].slice(0, 3);
+    const n = shuffle([...new Set(list.filter(c => Math.abs(c.y - y) <= 12).map(c => c.name))].filter(x => x !== not));
+    return [...n, ...shuffle(names.filter(x => x !== not && !n.includes(x)))].slice(0, 3);
   };
   const qs = [];
-  for (const c of F1) {
-    if (era(c.y) === d) qs.push({q: `Who won the ${c.y} Formula 1 World Championship?`, a: c.driver, opts: [c.driver, ...near(c.y, c.driver)]});
-    if (harder(c.y) === d) qs.push({q: `With which team did ${c.driver} win the ${c.y} title?`, a: c.team, opts: [c.team, ...shuffle(teams.filter(t => t !== c.team)).slice(0, 3)]});
+  for (const c of list) {
+    if (era(c.y) === d) qs.push({q: `Who won the ${c.y} ${champ(c.y)}?`, a: c.name, opts: [c.name, ...near(c.y, c.name)]});
+    if (harder(c.y) === d) qs.push({q: `With which ${team} did ${c.name} win the ${c.y} title?`, a: c.team, opts: [c.team, ...shuffle(teams.filter(t => t !== c.team)).slice(0, 3)]});
   }
-  for (const name of drivers) {
-    const years = F1.filter(c => c.driver === name).map(c => c.y), y = years[0], wiki = WIKI[name] || name;
-    if (era(y) === d) qs.push({q: 'Who is this?', a: name, opts: [name, ...near(y, name)], pic: wiki});
-    if (harder(y) === d) {
-      const wrong = shuffle([...Array(17)].map((_, i) => y - 8 + i).filter(x => x >= 1950 && x <= F1.at(-1).y && !years.includes(x))).slice(0, 3);
-      qs.push({q: years.length > 1 ? `In which year did ${name} win their first world title?` : `In which year did ${name} become World Champion?`,
-        a: String(y), opts: [y, ...wrong].map(String), img: wiki});
-    }
-    if (years.length > 1 && harder(y) === d) {
-      const n = years.length, wrong = shuffle([1, 2, 3, 4, 5, 6, 7].filter(x => x !== n)).slice(0, 3);
-      qs.push({q: `How many world titles did ${name} win?`, a: String(n), opts: [n, ...wrong].map(String), img: wiki});
-    }
+  for (const name of names) {
+    const years = list.filter(c => c.name === name).map(c => c.y), y = years[0], w = wiki[name] || name, n = years.length;
+    if (era(y) === d) qs.push({q: 'Who is this?', a: name, opts: [name, ...near(y, name)], pic: w});
+    if (harder(y) !== d) continue;
+    const wrong = shuffle([...Array(17)].map((_, i) => y - 8 + i).filter(x => x >= list[0].y && x <= list.at(-1).y && !years.includes(x))).slice(0, 3);
+    qs.push({q: n > 1 ? `In which year did ${name} win their first title?` : `In which year did ${name} become World Champion?`, a: String(y), opts: [y, ...wrong].map(String), img: w});
+    if (n > 1) qs.push({q: `How many world titles did ${name} win?`, a: String(n), opts: [n, ...shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(x => x !== n)).slice(0, 3)].map(String), img: w});
+    qs.push({q: `Which country is ${name} from?`, a: nat[name], opts: [nat[name], ...shuffle(countries.filter(x => x !== nat[name])).slice(0, 3)], img: w});
   }
-  return d > 1 ? [...qs, ...CATS['Formula 1']['t' + d].map(s => trivia(s, d))] : qs;
+  return d > 1 ? [...qs, ...CATS[key]['t' + d].map(s => trivia(s, d))] : qs;
 }
+const seriesSub = key => { const l = SERIES[key].list; return `${new Set(l.map(c => c.name)).size} world champions · ${l[0].y}–${l.at(-1).y}`; };
 
 const CATS = {
-  'Formula 1': {flag:'🏁', title:'Formula 1', sub:`${new Set(F1.map(c => c.driver)).size} world champions · 1950–${F1.at(-1).y}`, gen: f1Pool,
+  'Formula 1': {flag:'🏁', title:'Formula 1', sub: seriesSub('Formula 1'), gen: d => champPool('Formula 1', d),
   t2:[
     'Which team has won the most Constructors\' Championships?|Ferrari|McLaren|Williams|Mercedes',
     'Which two drivers share the record of seven world titles?|Lewis Hamilton & Michael Schumacher|Lewis Hamilton & Max Verstappen|Michael Schumacher & Juan Manuel Fangio|Ayrton Senna & Alain Prost',
@@ -253,7 +400,51 @@ const CATS = {
     'Which Japanese circuit has a figure-of-eight layout?|Suzuka|Fuji|Motegi|Okayama',
     'Which city hosted Formula 1\'s first night race, in 2008?|Singapore|Bahrain|Abu Dhabi|Kuala Lumpur']},
   // Cross-country category: reuses brands listed under their home country via "pick".
-  Sports: {flag:'🏎️', pick:['Ferrari','Lamborghini','Porsche','McLaren','Bugatti','Pagani','Koenigsegg','Aston Martin','Lotus','Maserati','Alpine','Rimac','De Tomaso','TVR','Noble','Ariel','Caterham','Saleen','Shelby','Spyker','Morgan'],
+  Rally: {flag:'🏔️', title:'Rally (WRC)', sub: seriesSub('Rally'), gen: d => champPool('Rally', d),
+  t2:[
+    'What does WRC stand for?|World Rally Championship|World Racing Cup|Winter Rally Circuit|World Road Championship',
+    'Who won nine WRC titles in a row (2004–2012)?|Sébastien Loeb|Marcus Grönholm|Tommi Mäkinen|Juha Kankkunen',
+    'Which rally starts in Monaco and is famous for icy Alpine night stages?|Monte Carlo Rally|Rally Finland|Safari Rally|Rally Sweden',
+    'Rally Finland is famous for what?|Huge jumps on fast gravel roads|Snow-only stages|Desert dunes|Night street stages',
+    'Which WRC round is traditionally run on snow and ice?|Rally Sweden|Rally Portugal|Acropolis Rally|Rally Argentina',
+    'In rallying, who reads the pace notes to the driver?|The co-driver|The team manager|The engineer|The marshal'],
+  t3:[
+    'Which class of rally cars was banned after 1986?|Group B|Group A|Group N|World Rally Car',
+    'Which car made four-wheel drive a winner in rallying from 1981?|Audi Quattro|Lancia 037|Peugeot 205 T16|Ford RS200',
+    'In which year did the rear-wheel-drive Lancia 037 win the manufacturers\' title?|1983|1985|1979|1987',
+    'Who was the first woman to win a WRC event, at the 1981 Sanremo Rally?|Michèle Mouton|Jutta Kleinschmidt|Pat Moss|Isolde Holderied',
+    'Who became the youngest WRC champion, in 2022?|Kalle Rovanperä|Sébastien Ogier|Colin McRae|Ott Tänak',
+    'Which country has hosted the Dakar Rally since 2020?|Saudi Arabia|Morocco|Argentina|Senegal',
+    'Which event was the first-ever WRC round, in January 1973?|Monte Carlo Rally|Rally Sweden|Safari Rally|RAC Rally']},
+  MotoGP: {flag:'🏍️', title:'MotoGP', sub: seriesSub('MotoGP'), gen: d => champPool('MotoGP', d),
+  t2:[
+    'Which rider is nicknamed "The Doctor"?|Valentino Rossi|Marc Márquez|Casey Stoner|Jorge Lorenzo',
+    'Which rider made the number 93 famous?|Marc Márquez|Valentino Rossi|Francesco Bagnaia|Joan Mir',
+    'What was the premier class called before MotoGP arrived in 2002?|500cc|Superbike|Formula 750|1000cc GP',
+    'Which Italian maker won its first MotoGP riders\' title in 2007?|Ducati|Aprilia|MV Agusta|Gilera',
+    'Which rider is nicknamed "Pecco"?|Francesco Bagnaia|Fabio Quartararo|Andrea Dovizioso|Marco Bezzecchi'],
+  t3:[
+    'Who has the most premier-class world titles (8)?|Giacomo Agostini|Valentino Rossi|Marc Márquez|Mick Doohan',
+    'Who won five 500cc titles in a row (1994–1998)?|Mick Doohan|Wayne Rainey|Eddie Lawson|Kevin Schwantz',
+    'Who became the youngest premier-class champion, in 2013?|Marc Márquez|Freddie Spencer|Valentino Rossi|Casey Stoner',
+    'At which circuit is the Dutch TT held?|Assen|Zandvoort|Brno|Sachsenring',
+    'Who became the first French premier-class champion, in 2021?|Fabio Quartararo|Johann Zarco|Christian Sarron|Olivier Jacque',
+    'Which American won the 2006 MotoGP title?|Nicky Hayden|Colin Edwards|Ben Spies|Kenny Roberts Jr.',
+    'Which maker quit MotoGP in 2022, two years after winning the title?|Suzuki|Kawasaki|Yamaha|Honda',
+    'Who won the first 10 races of 2014 on the way to 13 wins?|Marc Márquez|Jorge Lorenzo|Valentino Rossi|Dani Pedrosa']},
+  // Cross-country category: "Brand" = all its models, "Brand:a,b" = only those, "Brand:-a,b" = all except those.
+  Sports: {flag:'🏎️', pick:['Ferrari:-Purosangue','Lamborghini:-Urus,LM002','Porsche:-Cayenne,Macan,Panamera,Taycan','McLaren','Bugatti','Pagani','Koenigsegg',
+    'Aston Martin:-DBX,Rapide,Lagonda,Cygnet','Lotus:-Eletre,Emeya','Maserati:-Quattroporte,Ghibli,Levante,Grecale','Alpine:-A390,A290','Rimac','De Tomaso:-Deauville',
+    'TVR','Noble','Ariel','Caterham','Saleen','Shelby','Spyker','Morgan','Venturi','AC','Austin-Healey','Iso:Grifo','Jensen:Interceptor','DeLorean:DMC-12',
+    'Nissan:GT-R,Skyline GT-R,Fairlady Z,240Z,350Z,370Z,300ZX,Silvia,180SX','Toyota:Supra,GR Supra,2000GT,MR2,Celica,GR86,GT86,GR Yaris,Sports 800',
+    'Honda:NSX,S2000,S800,S660,Civic Type R,Integra,CR-X,Prelude,Beat','Mazda:MX-5,RX-7,RX-8,RX-3,Cosmo,787B','Subaru:WRX STI,BRZ,SVX',
+    'Mitsubishi:Lancer Evolution,3000GT,FTO,Starion','Lexus:LFA,LC 500,RC','Chevrolet:Corvette,Camaro,Chevelle','Ford:Mustang,GT40,GT,Capri,Sierra RS Cosworth',
+    'Dodge:Viper,Challenger,Charger,Demon,Stealth,Super Bee','Plymouth:Barracuda,Road Runner,Superbird,Prowler,GTX','Pontiac:Firebird,GTO,Trans Am,Fiero,Solstice',
+    'Tesla:Roadster','BMW:M1,M2,M3,M4,M5,M6,M8,Z1,Z3,Z4,Z8,i8,507,3.0 CSL,M3 CSL,M4 CSL,M3 GTR,M Coupé,M Roadster,1M',
+    'Mercedes-Benz:300 SL,190 SL,300 SLR,SLS AMG,AMG GT,AMG One,CLK GTR,SSK,SSKL,SL,SLK','Audi:R8,TT,Quattro,Sport Quattro','Volkswagen:Golf GTI,Scirocco,Corrado',
+    'Opel:Manta,Calibra,Speedster','Alfa Romeo:4C,8C Competizione,33 Stradale,Montreal,SZ,Duetto,GTV,Spider','Fiat:124 Spider,X1/9,Barchetta',
+    'Lancia:Stratos,Delta Integrale,037,Montecarlo','Abarth','Jaguar:E-Type,D-Type,C-Type,XK120,XJ220,F-Type,XKR,XK8,C-X75','Triumph:TR6,Spitfire,Stag,GT6',
+    'MG:Midget,Cyberster,RV8','Renault:Clio V6,5 Turbo,Mégane RS,Sport Spider','Peugeot:RCZ','Matra:Murena,Bagheera,Djet','Hyundai:Veloster,Tiburon','Kia:Stinger'],
   t2:[
     'In which English town is McLaren based?|Woking|Gaydon|Hethel|Crewe',
     'Which group owns Lamborghini?|Volkswagen Group|Stellantis|BMW|Ferrari',
@@ -595,8 +786,16 @@ const seen = {};
 BRANDS.forEach(b => b.models.forEach(m => seen[m.toLowerCase()] = (seen[m.toLowerCase()] || 0) + 1));
 BRANDS.forEach(b => b.models = b.models.filter(m => seen[m.toLowerCase()] === 1));
 const COUNTRIES = [...new Set(BRANDS.map(b => b.country))];
-const brandsOf = cat => cat === 'All' ? BRANDS : CATS[cat].pick ? BRANDS.filter(b => CATS[cat].pick.includes(b.brand)) : BRANDS.filter(b => b.cat === cat);
-console.assert(brandsOf('Sports').length === CATS.Sports.pick.length, 'unknown Sports brand');
+const pickBrand = p => {
+  const [name, list] = p.split(':'), b = BRANDS.find(x => x.brand === name);
+  console.assert(b, 'unknown brand', name);
+  if (!list) return b;
+  const except = list[0] === '-', ms = (except ? list.slice(1) : list).split(',');
+  ms.forEach(m => console.assert(b.models.includes(m), 'unknown model', name, m));
+  return {...b, models: b.models.filter(m => ms.includes(m) !== except)};
+};
+const brandsOf = cat => cat === 'All' ? BRANDS : CATS[cat].pick ? CATS[cat].pick.map(pickBrand) : BRANDS.filter(b => b.cat === cat);
+brandsOf('Sports'); // run the asserts once at load
 const trivia = (s, d) => { const [q, ...o] = s.split('|'); return {q, a: o[0], opts: o, d}; };
 
 function questionPool(cat, d) {
